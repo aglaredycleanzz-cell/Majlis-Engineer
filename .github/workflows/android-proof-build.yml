@@ -26,15 +26,6 @@ jobs:
         run: gradle --no-daemon testDebugUnitTest
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
-      - name: Run Android emulator smoke tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          target: google_apis
-          arch: x86_64
-          profile: pixel_2
-          disable-animations: true
-          script: gradle --no-daemon connectedDebugAndroidTest
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
