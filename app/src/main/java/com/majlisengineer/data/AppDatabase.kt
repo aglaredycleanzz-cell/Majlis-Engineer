@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [MaterialCategoryEntity::class, MaterialEntity::class, MaterialImageEntity::class,
         ProjectEntity::class, SiteSurveyEntity::class, BoqItemEntity::class, ProjectTaskEntity::class,
         DrawingNoteEntity::class, CadLayerEntity::class, CadDrawingEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -67,6 +67,13 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE boq_items ADD COLUMN purchaseIncrement REAL NOT NULL DEFAULT 1.0")
                 database.execSQL("ALTER TABLE boq_items ADD COLUMN materialUnitRate REAL NOT NULL DEFAULT 0.0")
                 database.execSQL("ALTER TABLE boq_items ADD COLUMN laborUnitRate REAL NOT NULL DEFAULT 0.0")
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE projects ADD COLUMN startDate TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE projects ADD COLUMN expectedDeliveryDate TEXT NOT NULL DEFAULT ''")
             }
         }
     }

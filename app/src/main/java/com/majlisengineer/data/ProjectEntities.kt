@@ -15,7 +15,9 @@ data class ProjectEntity(
     val projectType: String = "مجلس",
     val status: String = "جديد",
     val notes: String = "",
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "''") val startDate: String = "",
+    @ColumnInfo(defaultValue = "''") val expectedDeliveryDate: String = ""
 )
 
 @Entity(tableName = "site_surveys", indices = [Index("projectId")])

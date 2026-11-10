@@ -39,6 +39,8 @@ interface MaterialsDao {
     fun observeSurveys(projectId: String): Flow<List<SiteSurveyEntity>>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSurvey(survey: SiteSurveyEntity)
+    @Update
+    suspend fun updateSurvey(survey: SiteSurveyEntity)
     @Query("DELETE FROM site_surveys WHERE id=:id")
     suspend fun deleteSurvey(id: String)
 
@@ -46,6 +48,8 @@ interface MaterialsDao {
     fun observeBoqItems(projectId: String): Flow<List<BoqItemEntity>>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBoqItem(item: BoqItemEntity)
+    @Update
+    suspend fun updateBoqItem(item: BoqItemEntity)
     @Query("DELETE FROM boq_items WHERE id=:id")
     suspend fun deleteBoqItem(id: String)
 

@@ -26,6 +26,7 @@ import com.majlisengineer.costs.CostCalculator
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.UUID
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
@@ -158,18 +159,19 @@ private fun ProjectsScreen(
     onOpenProject: (String) -> Unit
 ) {
     var showAdd by remember { mutableStateOf(false) }
+    var editingProject by remember { mutableStateOf<ProjectEntity?>(null) }
     val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("المشاريع", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Button(onClick = { showAdd = true }) { Text("＋ مشروع جديد") }
+            Button(onClick = { editingProject = null; showAdd = true }) { Text("＋ مشروع جديد") }
         }
         if (projects.isEmpty()) {
             EmptyCard("ابدأ بمشروعك الأول", "سجل اسم المشروع والعميل والموقع، ثم افتح ملفه لإضافة المعاينة والكميات والمهام.")
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 projects.forEach { project ->
-                    Card(Modifier.fillMaxWidth().clickable { onOpenProject(project.id) }) {
+                    Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(project.name, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
@@ -178,6 +180,12 @@ private fun ProjectsScreen(
                             Text("العميل: ${project.clientName.ifBlank { "غير محدد" }}", fontSize = 13.sp)
                             Text("الموقع: ${project.location.ifBlank { "غير محدد" }}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("النوع: ${project.projectType}", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                            if (project.startDate.isNotBlank()) Text("البدء: ${project.startDate}", fontSize = 12.sp)
+                            if (project.expectedDeliveryDate.isNotBlank()) Text("التسليم المتوقع: ${project.expectedDeliveryDate}", fontSize = 12.sp)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = { onOpenProject(project.id) }) { Text("فتح الملف") }
+                                TextButton(onClick = { editingProject = project; showAdd = true }) { Text("تعديل البيانات") }
+                            }
                         }
                     }
                 }
@@ -186,12 +194,12 @@ private fun ProjectsScreen(
     }
     if (showAdd) {
         AddProjectDialog(
+            existing = editingProject,
             onDismiss = { showAdd = false },
-            onSave = { name, client, phone, location, type, notes ->
-                scope.launch {
-                    dao.insertProject(ProjectEntity(UUID.randomUUID().toString(), name.trim(), client.trim(), phone.trim(), location.trim(), type, "جديد", notes.trim()))
-                }
+            onSave = { project ->
+                scope.launch { dao.insertProject(project) }
                 showAdd = false
+                editingProject = null
             }
         )
     }
@@ -209,6 +217,8 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
     var selectedTab by remember { mutableIntStateOf(0) }
     var showSurvey by remember { mutableStateOf(false) }
     var showBoq by remember { mutableStateOf(false) }
+    var editingSurvey by remember { mutableStateOf<SiteSurveyEntity?>(null) }
+    var editingBoqItem by remember { mutableStateOf<BoqItemEntity?>(null) }
     var showTask by remember { mutableStateOf(false) }
     var showDrawingNote by remember { mutableStateOf(false) }
     var reportLines by remember { mutableStateOf(emptyList<String>()) }
@@ -327,7 +337,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                 }
                 1 -> {
                     SectionHeader("المعاينة الميدانية والقياسات", "احفظ أبعاد كل فراغ، وتحسب المساحات تلقائيًا.")
-                    Button(onClick = { showSurvey = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ إضافة قياس") }
+                    Button(onClick = { editingSurvey = null; showSurvey = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ إضافة قياس") }
                     if (surveys.isEmpty()) EmptyCard("لا توجد قياسات", "أضف اسم الفراغ والطول والعرض والارتفاع.")
                     surveys.forEach { item ->
                         DetailCard(item.spaceName) {
@@ -335,6 +345,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                             InfoLine("مساحة الأرضية", "${formatNumber(item.floorAreaM2)} م²")
                             InfoLine("مساحة الجدران الصافية", "${formatNumber(item.wallAreaM2)} م²")
                             InfoLine("ملاحظات", item.notes)
+                            TextButton(onClick = { editingSurvey = item; showSurvey = true }) { Text("تعديل القياس") }
                             TextButton(onClick = { scope.launch { dao.deleteSurvey(item.id) } }) { Text("حذف القياس", color = MaterialTheme.colorScheme.error) }
                         }
                     }
@@ -346,7 +357,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                         MetricCard("تكلفة المواد والعمالة", formatOmr(totalCost), Modifier.weight(1f))
                         MetricCard(if (costedBreakdowns.isEmpty()) "الربح (أدخل التكلفة)" else "ربح البنود ذات التكلفة", formatOmr(expectedProfit), Modifier.weight(1f))
                     }
-                    Button(onClick = { showBoq = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ إضافة بند كمية") }
+                    Button(onClick = { editingBoqItem = null; showBoq = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ إضافة بند كمية") }
                     if (boqItems.isEmpty()) EmptyCard("جدول الكميات فارغ", "أضف بندًا مع الوحدة والكمية وسعر الوحدة.")
                     boqItems.forEach { item ->
                         DetailCard(item.description) {
@@ -365,6 +376,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                                     InfoLine("التكلفة والربح", "غير محسوبين — أدخل تكلفة المادة أو العمالة")
                                 }
                             }
+                            TextButton(onClick = { editingBoqItem = item; showBoq = true }) { Text("تعديل البند") }
                             TextButton(onClick = { scope.launch { dao.deleteBoqItem(item.id) } }) { Text("حذف البند", color = MaterialTheme.colorScheme.error) }
                         }
                     }
@@ -416,27 +428,25 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
     }
 
     if (showSurvey) AddSurveyDialog(
-        onDismiss = { showSurvey = false },
-        onSave = { name, length, width, height, openings, notes ->
-            scope.launch { dao.insertSurvey(SiteSurveyEntity(UUID.randomUUID().toString(), projectId, name, length, width, height, openings, notes)) }
+        projectId = projectId,
+        existing = editingSurvey,
+        onDismiss = { showSurvey = false; editingSurvey = null },
+        onSave = { survey ->
+            scope.launch { if (editingSurvey == null) dao.insertSurvey(survey) else dao.updateSurvey(survey) }
             showSurvey = false
+            editingSurvey = null
         }
     )
     if (showBoq) AddBoqDialog(
-        onDismiss = { showBoq = false },
-        onSave = { description, unit, quantity, rate, category, wastePercent, purchaseIncrement, materialUnitRate, laborUnitRate ->
+        projectId = projectId,
+        existing = editingBoqItem,
+        onDismiss = { showBoq = false; editingBoqItem = null },
+        onSave = { item ->
             scope.launch {
-                dao.insertBoqItem(
-                    BoqItemEntity(
-                        UUID.randomUUID().toString(), projectId, description, unit, quantity, rate, category,
-                        wastePercent = wastePercent,
-                        purchaseIncrement = purchaseIncrement,
-                        materialUnitRate = materialUnitRate,
-                        laborUnitRate = laborUnitRate
-                    )
-                )
+                if (editingBoqItem == null) dao.insertBoqItem(item) else dao.updateBoqItem(item)
             }
             showBoq = false
+            editingBoqItem = null
         }
     )
     if (showTask) AddTaskDialog(
@@ -558,48 +568,93 @@ private fun SectionHeader(title: String, subtitle: String) {
 
 @Composable
 private fun AddProjectDialog(
+    existing: ProjectEntity?,
     onDismiss: () -> Unit,
-    onSave: (String, String, String, String, String, String) -> Unit
+    onSave: (ProjectEntity) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var client by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("مجلس") }
-    var notes by remember { mutableStateOf("") }
+    var name by remember(existing?.id) { mutableStateOf(existing?.name.orEmpty()) }
+    var client by remember(existing?.id) { mutableStateOf(existing?.clientName.orEmpty()) }
+    var phone by remember(existing?.id) { mutableStateOf(existing?.clientPhone.orEmpty()) }
+    var location by remember(existing?.id) { mutableStateOf(existing?.location.orEmpty()) }
+    var type by remember(existing?.id) { mutableStateOf(existing?.projectType ?: "مجلس") }
+    var notes by remember(existing?.id) { mutableStateOf(existing?.notes.orEmpty()) }
+    var status by remember(existing?.id) { mutableStateOf(existing?.status ?: "جديد") }
+    var startDate by remember(existing?.id) { mutableStateOf(existing?.startDate.orEmpty()) }
+    var deliveryDate by remember(existing?.id) { mutableStateOf(existing?.expectedDeliveryDate.orEmpty()) }
+    val statuses = listOf("جديد", "معاينة", "مخططات", "تسعير", "قيد التنفيذ", "مكتمل", "متوقف")
+    val datesValid = validOptionalIsoDate(startDate) && validOptionalIsoDate(deliveryDate)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("مشروع جديد") },
+        title = { Text(if (existing == null) "مشروع جديد" else "تعديل بيانات المشروع") },
         text = {
-            Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(name, { name = it }, label = { Text("اسم المشروع *") }, singleLine = true)
                 OutlinedTextField(client, { client = it }, label = { Text("اسم العميل") }, singleLine = true)
                 OutlinedTextField(phone, { phone = it }, label = { Text("رقم الهاتف") }, singleLine = true)
                 OutlinedTextField(location, { location = it }, label = { Text("الموقع") }, singleLine = true)
                 OutlinedTextField(type, { type = it }, label = { Text("نوع المشروع") }, singleLine = true)
+                Text("حالة المشروع", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    statuses.forEach { value ->
+                        FilterChip(selected = status == value, onClick = { status = value }, label = { Text(value) })
+                    }
+                }
+                OutlinedTextField(startDate, { startDate = it }, label = { Text("تاريخ البدء YYYY-MM-DD") }, singleLine = true)
+                OutlinedTextField(deliveryDate, { deliveryDate = it }, label = { Text("موعد التسليم YYYY-MM-DD") }, singleLine = true)
+                if (!datesValid) Text("أدخل التاريخ بصيغة السنة-الشهر-اليوم، أو اتركه فارغًا.", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                 OutlinedTextField(notes, { notes = it }, label = { Text("ملاحظات أولية") })
             }
         },
-        confirmButton = { TextButton(enabled = name.isNotBlank(), onClick = { onSave(name, client, phone, location, type, notes) }) { Text("حفظ المشروع") } },
+        confirmButton = { TextButton(enabled = name.isNotBlank() && datesValid, onClick = {
+            onSave(
+                ProjectEntity(
+                    id = existing?.id ?: UUID.randomUUID().toString(),
+                    name = name.trim(),
+                    clientName = client.trim(),
+                    clientPhone = phone.trim(),
+                    location = location.trim(),
+                    projectType = type.trim().ifBlank { "مجلس" },
+                    status = status,
+                    notes = notes.trim(),
+                    createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+                    startDate = startDate.trim(),
+                    expectedDeliveryDate = deliveryDate.trim()
+                )
+            )
+        }) { Text(if (existing == null) "حفظ المشروع" else "حفظ التعديلات") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("إلغاء") } }
     )
 }
 
+private fun validOptionalIsoDate(value: String): Boolean =
+    value.isBlank() || runCatching { LocalDate.parse(value); true }.getOrDefault(false)
+
 @Composable
 private fun AddSurveyDialog(
+    projectId: String,
+    existing: SiteSurveyEntity?,
     onDismiss: () -> Unit,
-    onSave: (String, Double, Double, Double, Double, String) -> Unit
+    onSave: (SiteSurveyEntity) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var length by remember { mutableStateOf("") }
-    var width by remember { mutableStateOf("") }
-    var height by remember { mutableStateOf("3.0") }
-    var openings by remember { mutableStateOf("0") }
-    var notes by remember { mutableStateOf("") }
-    val valid = name.isNotBlank() && (length.toDoubleOrNull() ?: 0.0) > 0 && (width.toDoubleOrNull() ?: 0.0) > 0 && (height.toDoubleOrNull() ?: 0.0) > 0 && (openings.toDoubleOrNull() ?: -1.0) >= 0
+    var name by remember(existing?.id) { mutableStateOf(existing?.spaceName.orEmpty()) }
+    var length by remember(existing?.id) { mutableStateOf(existing?.lengthM?.toString().orEmpty()) }
+    var width by remember(existing?.id) { mutableStateOf(existing?.widthM?.toString().orEmpty()) }
+    var height by remember(existing?.id) { mutableStateOf(existing?.heightM?.toString() ?: "3.0") }
+    var openings by remember(existing?.id) { mutableStateOf(existing?.openingsAreaM2?.toString() ?: "0") }
+    var notes by remember(existing?.id) { mutableStateOf(existing?.notes.orEmpty()) }
+    val parsedLength = length.toDoubleOrNull()
+    val parsedWidth = width.toDoubleOrNull()
+    val parsedHeight = height.toDoubleOrNull()
+    val parsedOpenings = openings.toDoubleOrNull()
+    val grossWallArea = if (parsedLength != null && parsedWidth != null && parsedHeight != null) 2.0 * (parsedLength + parsedWidth) * parsedHeight else 0.0
+    val floorArea = if (parsedLength != null && parsedWidth != null) parsedLength * parsedWidth else 0.0
+    val valid = name.isNotBlank() && (parsedLength ?: 0.0) > 0 && (parsedWidth ?: 0.0) > 0 &&
+        (parsedHeight ?: 0.0) > 0 && (parsedOpenings ?: -1.0) >= 0 && (parsedOpenings ?: 0.0) <= grossWallArea &&
+        listOf(parsedLength, parsedWidth, parsedHeight, parsedOpenings).all { it?.isFinite() == true } &&
+        grossWallArea.isFinite() && floorArea.isFinite()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("إضافة قياس ميداني") },
+        title = { Text(if (existing == null) "إضافة قياس ميداني" else "تعديل القياس الميداني") },
         text = {
             Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 OutlinedTextField(name, { name = it }, label = { Text("اسم الفراغ *") }, singleLine = true)
@@ -608,28 +663,44 @@ private fun AddSurveyDialog(
                 OutlinedTextField(height, { height = it }, label = { Text("الارتفاع بالمتر *") }, singleLine = true)
                 OutlinedTextField(openings, { openings = it }, label = { Text("مساحة الفتحات م²") }, singleLine = true)
                 OutlinedTextField(notes, { notes = it }, label = { Text("ملاحظات") })
-                Text("تحسب مساحة الأرضية والجدران الصافية تلقائيًا بعد الحفظ.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("تحسب مساحة الأرضية والجدران الصافية تلقائيًا. يجب ألا تتجاوز الفتحات مساحة الجدران الإجمالية.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        confirmButton = { TextButton(enabled = valid, onClick = { onSave(name, length.toDouble()!!, width.toDouble()!!, height.toDouble()!!, openings.toDouble()!!, notes) }) { Text("حفظ القياس") } },
+        confirmButton = { TextButton(enabled = valid, onClick = {
+            onSave(
+                SiteSurveyEntity(
+                    id = existing?.id ?: UUID.randomUUID().toString(),
+                    projectId = projectId,
+                    spaceName = name.trim(),
+                    lengthM = parsedLength!!,
+                    widthM = parsedWidth!!,
+                    heightM = parsedHeight!!,
+                    openingsAreaM2 = parsedOpenings!!,
+                    notes = notes.trim(),
+                    createdAt = existing?.createdAt ?: System.currentTimeMillis()
+                )
+            )
+        }) { Text(if (existing == null) "حفظ القياس" else "حفظ التعديل") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("إلغاء") } }
     )
 }
 
 @Composable
 private fun AddBoqDialog(
+    projectId: String,
+    existing: BoqItemEntity?,
     onDismiss: () -> Unit,
-    onSave: (String, String, Double, Double, String, Double, Double, Double, Double) -> Unit
+    onSave: (BoqItemEntity) -> Unit
 ) {
-    var description by remember { mutableStateOf("") }
-    var unit by remember { mutableStateOf("م²") }
-    var quantity by remember { mutableStateOf("") }
-    var rate by remember { mutableStateOf("") }
-    var wastePercent by remember { mutableStateOf("0") }
-    var purchaseIncrement by remember { mutableStateOf("1") }
-    var materialUnitRate by remember { mutableStateOf("0") }
-    var laborUnitRate by remember { mutableStateOf("0") }
-    var category by remember { mutableStateOf("تشطيبات") }
+    var description by remember(existing?.id) { mutableStateOf(existing?.description.orEmpty()) }
+    var unit by remember(existing?.id) { mutableStateOf(existing?.unit ?: "م²") }
+    var quantity by remember(existing?.id) { mutableStateOf(existing?.quantity?.toString().orEmpty()) }
+    var rate by remember(existing?.id) { mutableStateOf(existing?.unitRate?.toString().orEmpty()) }
+    var wastePercent by remember(existing?.id) { mutableStateOf(existing?.wastePercent?.toString() ?: "0") }
+    var purchaseIncrement by remember(existing?.id) { mutableStateOf(existing?.purchaseIncrement?.toString() ?: "1") }
+    var materialUnitRate by remember(existing?.id) { mutableStateOf(existing?.materialUnitRate?.toString() ?: "0") }
+    var laborUnitRate by remember(existing?.id) { mutableStateOf(existing?.laborUnitRate?.toString() ?: "0") }
+    var category by remember(existing?.id) { mutableStateOf(existing?.category ?: "تشطيبات") }
     val parsedWaste = wastePercent.toDoubleOrNull()
     val parsedIncrement = purchaseIncrement.toDoubleOrNull()
     val parsedMaterialRate = materialUnitRate.toDoubleOrNull()
@@ -643,7 +714,7 @@ private fun AddBoqDialog(
         listOf(parsedQuantity, parsedRate, parsedWaste, parsedIncrement, parsedMaterialRate, parsedLaborRate).all { it?.isFinite() == true }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("إضافة بند إلى جدول الكميات") },
+        title = { Text(if (existing == null) "إضافة بند إلى جدول الكميات" else "تعديل بند الحصر") },
         text = {
             Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 OutlinedTextField(description, { description = it }, label = { Text("وصف البند *") })
@@ -659,8 +730,23 @@ private fun AddBoqDialog(
             }
         },
         confirmButton = { TextButton(enabled = valid, onClick = {
-            onSave(description, unit, parsedQuantity!!, parsedRate!!, category, parsedWaste!!, parsedIncrement!!, parsedMaterialRate!!, parsedLaborRate!!)
-        }) { Text("حفظ البند") } },
+            onSave(
+                BoqItemEntity(
+                    id = existing?.id ?: UUID.randomUUID().toString(),
+                    projectId = projectId,
+                    description = description.trim(),
+                    unit = unit.trim(),
+                    quantity = parsedQuantity!!,
+                    unitRate = parsedRate!!,
+                    category = category.trim().ifBlank { "عام" },
+                    createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+                    wastePercent = parsedWaste!!,
+                    purchaseIncrement = parsedIncrement!!,
+                    materialUnitRate = parsedMaterialRate!!,
+                    laborUnitRate = parsedLaborRate!!
+                )
+            )
+        }) { Text(if (existing == null) "حفظ البند" else "حفظ التعديل") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("إلغاء") } }
     )
 }
