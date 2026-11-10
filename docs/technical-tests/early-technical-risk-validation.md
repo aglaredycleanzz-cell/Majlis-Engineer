@@ -15,13 +15,13 @@
 
 ## Task 2 — Basic CAD operations on phone
 - [x] Define model behavior tests for create/add/move/edit/delete/layer visibility/snapshot/reopen.
-- [ ] Run tests and record initial failures.
-- [ ] Implement disposable proof drawing model and Compose proof screen.
-- [ ] Run CI, build APK, and install on physical phone.
+- [x] Run model unit tests in CI (run #21: testDebugUnitTest passed).
+- [x] Implement the first project-scoped 2D drawing editor backed by Room and a 2→3 migration.
+- [ ] Run updated CI/build and verify the editor on the physical phone.
 - [ ] Test approximately 50, 500, and 2,000 entities; record touch latency, viewport usability, crashes, and save/reopen integrity.
 - [ ] Commit proof and result report.
 
-**Current code:** ProofDrawingModel.kt and ProofDrawingModelTest.kt committed in 59305f5c90a9aa7e051c5d8e6c0fc69e28b5ce42. The model test run is not yet verified.
+**Evidence:** ProofDrawingModel.kt and ProofDrawingModelTest.kt are in commit 59305f5c90a9aa7e051c5d8e6c0fc69e28b5ce42. Run #21 [passed testDebugUnitTest](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42732431688). This change adds a project-scoped Room drawing store, non-destructive 2→3 migration, and a Compose 2D editor for line/rectangle/circle/text primitives, layers, selection, drag move, edit/delete, zoom, pan, and automatic local save. Updated build and actual-device interaction remain pending.
 
 ## Task 3 — DXF import/edit/export
 - [ ] Assemble fixtures for line, polyline, circle, arc, text, dimensions, blocks, layers, units, and unknown entities.

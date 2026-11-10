@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 import com.majlisengineer.data.*
+import com.majlisengineer.cad.ProjectCadScreen
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.UUID
@@ -235,10 +236,13 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
             }
         }
         ScrollableTabRow(selectedTabIndex = selectedTab, edgePadding = 8.dp) {
-            listOf("الملخص", "المعاينة", "الكميات", "التنفيذ", "المخططات").forEachIndexed { index, label ->
+            listOf("الملخص", "المعاينة", "الكميات", "التنفيذ", "الملاحظات", "الرسم الهندسي").forEachIndexed { index, label ->
                 Tab(selected = selectedTab == index, onClick = { selectedTab = index }, text = { Text(label) })
             }
         }
+        if (selectedTab == 5) {
+            ProjectCadScreen(dao, projectId, Modifier.weight(1f).fillMaxWidth())
+        } else {
         Column(
             Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -373,6 +377,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                     }
                 }
             }
+        }
         }
     }
 

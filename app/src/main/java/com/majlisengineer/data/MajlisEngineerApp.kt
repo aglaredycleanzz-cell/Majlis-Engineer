@@ -10,22 +10,16 @@ import kotlinx.coroutines.launch
 class MajlisEngineerApp : Application() {
     lateinit var database: AppDatabase
         private set
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
-        database = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "majlis_engineer.db"
-        ).addMigrations(AppDatabase.MIGRATION_1_2).build()
-
+        database = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "majlis_engineer.db")
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .build()
         scope.launch {
             val dao = database.materialsDao()
-            if (dao.categoryCount() == 0) {
-                dao.insertCategories(MaterialCategorySeed.categories)
-            }
+            if (dao.categoryCount() == 0) dao.insertCategories(MaterialCategorySeed.categories)
         }
     }
 }
