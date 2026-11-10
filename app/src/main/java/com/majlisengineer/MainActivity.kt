@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 import com.majlisengineer.data.*
 import com.majlisengineer.cad.ProjectCadScreen
+import com.majlisengineer.costs.CostCalculator
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.UUID
@@ -225,6 +226,17 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
     }
     val currentProject = project!!
     val total = boqItems.sumOf { it.quantity * it.unitRate }
+    val costBreakdowns = boqItems.mapNotNull { item ->
+        runCatching {
+            item to CostCalculator.calculate(
+                item.quantity, item.wastePercent, item.purchaseIncrement,
+                item.materialUnitRate, item.laborUnitRate, item.unitRate
+            )
+        }.getOrNull()
+    }
+    val costedBreakdowns = costBreakdowns.filter { (item, _) -> item.materialUnitRate > 0.0 || item.laborUnitRate > 0.0 }
+    val totalCost = costedBreakdowns.sumOf { it.second.totalCostOmr.toDouble() }
+    val expectedProfit = costedBreakdowns.sumOf { it.second.expectedProfitOmr.toDouble() }
     val completedTasks = tasks.count { it.status == "مكتمل" }
 
     Column(Modifier.fillMaxSize()) {
@@ -292,7 +304,13 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                                 add("")
                                 add("جدول الكميات")
                                 boqItems.forEach { add("${it.description}: ${it.quantity} ${it.unit} × ${formatOmr(it.unitRate)} = ${formatOmr(it.total)}") }
-                                add("الإجمالي التقديري: ${formatOmr(total)}")
+                                add("إجمالي سعر البيع المتوقع: ${formatOmr(total)}")
+                                add("تكلفة المواد والعمالة للبنود المدخلة تكلفتها: ${formatOmr(totalCost)}")
+                                add("ربح البنود المدخلة تكلفتها فقط: ${formatOmr(expectedProfit)}")
+                                add("بنود لم تُدخل لها تكلفة مواد أو عمالة: ${boqItems.size - costedBreakdowns.size}")
+                                costedBreakdowns.forEach { (item, result) ->
+                                    add("${item.description}: شراء ${formatNumber(result.purchaseQuantity.toDouble())} ${item.unit}، مواد ${formatOmr(result.materialCostOmr.toDouble())}، عمالة ${formatOmr(result.laborCostOmr.toDouble())}")
+                                }
                                 add("")
                                 add("مهام التنفيذ")
                                 tasks.forEach { add("${it.title} — ${it.status}") }
@@ -322,15 +340,31 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                     }
                 }
                 2 -> {
-                    SectionHeader("جدول الكميات والتكلفة", "الأسعار بالريال العماني، والإجمالي يحسب من الكمية × سعر الوحدة.")
-                    MetricCard("الإجمالي التقديري", formatOmr(total), Modifier.fillMaxWidth())
+                    SectionHeader("جدول الكميات والتكلفة", "السعر والتكلفة والربح التقديري بالريال العماني.")
+                    MetricCard("سعر البيع المتوقع", formatOmr(total), Modifier.fillMaxWidth())
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MetricCard("تكلفة المواد والعمالة", formatOmr(totalCost), Modifier.weight(1f))
+                        MetricCard(if (costedBreakdowns.isEmpty()) "الربح (أدخل التكلفة)" else "ربح البنود ذات التكلفة", formatOmr(expectedProfit), Modifier.weight(1f))
+                    }
                     Button(onClick = { showBoq = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ إضافة بند كمية") }
                     if (boqItems.isEmpty()) EmptyCard("جدول الكميات فارغ", "أضف بندًا مع الوحدة والكمية وسعر الوحدة.")
                     boqItems.forEach { item ->
                         DetailCard(item.description) {
                             InfoLine("الفئة / الوحدة", "${item.category} / ${item.unit}")
-                            InfoLine("الكمية × السعر", "${formatNumber(item.quantity)} × ${formatOmr(item.unitRate)}")
-                            InfoLine("الإجمالي", formatOmr(item.total))
+                            val breakdown = costBreakdowns.firstOrNull { it.first.id == item.id }?.second
+                            InfoLine("الكمية الصافية × سعر البيع", "${formatNumber(item.quantity)} × ${formatOmr(item.unitRate)}")
+                            InfoLine("الإيراد المتوقع", formatOmr(item.total))
+                            if (breakdown != null) {
+                                InfoLine("الهدر / وحدة الشراء", "${formatNumber(item.wastePercent)}% / ${formatNumber(item.purchaseIncrement)} ${item.unit}")
+                                InfoLine("كمية الشراء بعد التقريب", "${formatNumber(breakdown.purchaseQuantity.toDouble())} ${item.unit}")
+                                if (item.materialUnitRate > 0.0 || item.laborUnitRate > 0.0) {
+                                    InfoLine("تكلفة المواد", formatOmr(breakdown.materialCostOmr.toDouble()))
+                                    InfoLine("تكلفة العمالة", formatOmr(breakdown.laborCostOmr.toDouble()))
+                                    InfoLine("التكلفة / الربح", "${formatOmr(breakdown.totalCostOmr.toDouble())} / ${formatOmr(breakdown.expectedProfitOmr.toDouble())}")
+                                } else {
+                                    InfoLine("التكلفة والربح", "غير محسوبين — أدخل تكلفة المادة أو العمالة")
+                                }
+                            }
                             TextButton(onClick = { scope.launch { dao.deleteBoqItem(item.id) } }) { Text("حذف البند", color = MaterialTheme.colorScheme.error) }
                         }
                     }
@@ -390,8 +424,18 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
     )
     if (showBoq) AddBoqDialog(
         onDismiss = { showBoq = false },
-        onSave = { description, unit, quantity, rate, category ->
-            scope.launch { dao.insertBoqItem(BoqItemEntity(UUID.randomUUID().toString(), projectId, description, unit, quantity, rate, category)) }
+        onSave = { description, unit, quantity, rate, category, wastePercent, purchaseIncrement, materialUnitRate, laborUnitRate ->
+            scope.launch {
+                dao.insertBoqItem(
+                    BoqItemEntity(
+                        UUID.randomUUID().toString(), projectId, description, unit, quantity, rate, category,
+                        wastePercent = wastePercent,
+                        purchaseIncrement = purchaseIncrement,
+                        materialUnitRate = materialUnitRate,
+                        laborUnitRate = laborUnitRate
+                    )
+                )
+            }
             showBoq = false
         }
     )
@@ -575,28 +619,48 @@ private fun AddSurveyDialog(
 @Composable
 private fun AddBoqDialog(
     onDismiss: () -> Unit,
-    onSave: (String, String, Double, Double, String) -> Unit
+    onSave: (String, String, Double, Double, String, Double, Double, Double, Double) -> Unit
 ) {
     var description by remember { mutableStateOf("") }
     var unit by remember { mutableStateOf("م²") }
     var quantity by remember { mutableStateOf("") }
     var rate by remember { mutableStateOf("") }
+    var wastePercent by remember { mutableStateOf("0") }
+    var purchaseIncrement by remember { mutableStateOf("1") }
+    var materialUnitRate by remember { mutableStateOf("0") }
+    var laborUnitRate by remember { mutableStateOf("0") }
     var category by remember { mutableStateOf("تشطيبات") }
-    val valid = description.isNotBlank() && unit.isNotBlank() && (quantity.toDoubleOrNull() ?: 0.0) > 0 && (rate.toDoubleOrNull() ?: -1.0) >= 0
+    val parsedWaste = wastePercent.toDoubleOrNull()
+    val parsedIncrement = purchaseIncrement.toDoubleOrNull()
+    val parsedMaterialRate = materialUnitRate.toDoubleOrNull()
+    val parsedLaborRate = laborUnitRate.toDoubleOrNull()
+    val parsedQuantity = quantity.toDoubleOrNull()
+    val parsedRate = rate.toDoubleOrNull()
+    val valid = description.isNotBlank() && unit.isNotBlank() &&
+        (parsedQuantity ?: 0.0) > 0 && (parsedRate ?: -1.0) >= 0 &&
+        (parsedWaste ?: -1.0) >= 0 && (parsedIncrement ?: 0.0) > 0 &&
+        (parsedMaterialRate ?: -1.0) >= 0 && (parsedLaborRate ?: -1.0) >= 0 &&
+        listOf(parsedQuantity, parsedRate, parsedWaste, parsedIncrement, parsedMaterialRate, parsedLaborRate).all { it?.isFinite() == true }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("إضافة بند إلى جدول الكميات") },
         text = {
-            Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 OutlinedTextField(description, { description = it }, label = { Text("وصف البند *") })
                 OutlinedTextField(category, { category = it }, label = { Text("الفئة") }, singleLine = true)
                 OutlinedTextField(unit, { unit = it }, label = { Text("الوحدة *") }, singleLine = true)
-                OutlinedTextField(quantity, { quantity = it }, label = { Text("الكمية *") }, singleLine = true)
-                OutlinedTextField(rate, { rate = it }, label = { Text("سعر الوحدة بالريال العماني *") }, singleLine = true)
-                Text("القيمة = الكمية × سعر الوحدة", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(quantity, { quantity = it }, label = { Text("الكمية الصافية *") }, singleLine = true)
+                OutlinedTextField(wastePercent, { wastePercent = it }, label = { Text("نسبة الهدر %") }, singleLine = true)
+                OutlinedTextField(purchaseIncrement, { purchaseIncrement = it }, label = { Text("وحدة الشراء / خطوة التقريب") }, singleLine = true)
+                OutlinedTextField(materialUnitRate, { materialUnitRate = it }, label = { Text("تكلفة المادة للوحدة ر.ع") }, singleLine = true)
+                OutlinedTextField(laborUnitRate, { laborUnitRate = it }, label = { Text("تكلفة العمالة للوحدة ر.ع") }, singleLine = true)
+                OutlinedTextField(rate, { rate = it }, label = { Text("سعر البيع للوحدة ر.ع *") }, singleLine = true)
+                Text("الشراء = الكمية الصافية × (1 + الهدر)، ثم التقريب لوحدة الشراء. أدخل الأسعار الفعلية؛ النتيجة تقديرية وتحتاج مراجعة.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        confirmButton = { TextButton(enabled = valid, onClick = { onSave(description, unit, quantity.toDouble()!!, rate.toDouble()!!, category) }) { Text("حفظ البند") } },
+        confirmButton = { TextButton(enabled = valid, onClick = {
+            onSave(description, unit, parsedQuantity!!, parsedRate!!, category, parsedWaste!!, parsedIncrement!!, parsedMaterialRate!!, parsedLaborRate!!)
+        }) { Text("حفظ البند") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("إلغاء") } }
     )
 }

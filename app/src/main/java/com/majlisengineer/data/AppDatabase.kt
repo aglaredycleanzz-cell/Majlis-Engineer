@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [MaterialCategoryEntity::class, MaterialEntity::class, MaterialImageEntity::class,
         ProjectEntity::class, SiteSurveyEntity::class, BoqItemEntity::class, ProjectTaskEntity::class,
         DrawingNoteEntity::class, CadLayerEntity::class, CadDrawingEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -58,6 +58,15 @@ abstract class AppDatabase : RoomDatabase() {
                     height REAL NOT NULL, label TEXT NOT NULL, updatedAt INTEGER NOT NULL)""")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_cad_entities_projectId ON cad_entities(projectId)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_cad_entities_layerId ON cad_entities(layerId)")
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE boq_items ADD COLUMN wastePercent REAL NOT NULL DEFAULT 0.0")
+                database.execSQL("ALTER TABLE boq_items ADD COLUMN purchaseIncrement REAL NOT NULL DEFAULT 1.0")
+                database.execSQL("ALTER TABLE boq_items ADD COLUMN materialUnitRate REAL NOT NULL DEFAULT 0.0")
+                database.execSQL("ALTER TABLE boq_items ADD COLUMN laborUnitRate REAL NOT NULL DEFAULT 0.0")
             }
         }
     }

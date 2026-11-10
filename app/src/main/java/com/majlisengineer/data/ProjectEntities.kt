@@ -3,6 +3,7 @@ package com.majlisengineer.data
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.ColumnInfo
 
 @Entity(tableName = "projects", indices = [Index("createdAt"), Index("status")])
 data class ProjectEntity(
@@ -40,9 +41,14 @@ data class BoqItemEntity(
     val description: String,
     val unit: String,
     val quantity: Double,
+    /** Customer selling rate per net unit; retained as the legacy database column. */
     val unitRate: Double,
     val category: String = "عام",
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "0.0") val wastePercent: Double = 0.0,
+    @ColumnInfo(defaultValue = "1.0") val purchaseIncrement: Double = 1.0,
+    @ColumnInfo(defaultValue = "0.0") val materialUnitRate: Double = 0.0,
+    @ColumnInfo(defaultValue = "0.0") val laborUnitRate: Double = 0.0
 ) {
     val total: Double get() = quantity * unitRate
 }
