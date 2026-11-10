@@ -1,15 +1,15 @@
 # Early Technical Risk Validation — Execution Tracker
 
-**Source plan:** approved third technical validation document dated 2026-11-10. This repository copy is the live execution checklist. A box is checked only when evidence exists; build success is not physical-device acceptance.
+**Source plan:** approved third technical validation document dated 2026-11-10. A box is checked only when evidence exists; build success is not physical-device acceptance.
 
 ## Task 1 — Reproducible Android proof-test host
 - [x] Create native Android Kotlin/Compose host.
 - [x] Add CI for JVM tests, debug APK build, and APK artifact upload (without emulator dependency).
-- [ ] Verify current commit's APK artifact.
+- [ ] Verify current commit's APK artifact and stable signing certificate.
 - [ ] Install on target phone and record device baseline and launch result.
 - [x] Commit reproducible host.
 
-**Evidence:** host commit e33794b6c55b2250462febccc1d5a9f2c42e4d5a. Workflow run [42723055744](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42723055744) passed JVM unit tests and debug APK build, then failed only because the Android emulator did not boot before timeout. The emulator step has now been removed from CI; the next run must confirm APK artifact upload.
+**Evidence:** host commit e33794b6c55b2250462febccc1d5a9f2c42e4d5a. Workflow run [42723055744](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42723055744) passed JVM unit tests and debug APK build, then failed only because the Android emulator did not boot before timeout. Emulator removed from CI in commit 713465d470bdfb87bf73e823a873d72a2b8d8abc. Runs [#18](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42724827764) and [#19](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42729020851) succeeded but used different debug signatures because hosted runners generated ephemeral debug keystores. A fixed test-only debug keystore is now checked into the public repository to make subsequent debug builds update-compatible. This key is for development APKs only; never reuse it for a production/release signing key. The next CI run must verify its signature and artifact.
 
 ## Task 2 — Basic CAD operations on phone
 - [x] Define model behavior tests for create/add/move/edit/delete/layer visibility/snapshot/reopen.
