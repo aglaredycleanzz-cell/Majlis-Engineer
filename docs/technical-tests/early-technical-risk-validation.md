@@ -5,23 +5,24 @@
 ## Task 1 — Reproducible Android proof-test host
 - [x] Create native Android Kotlin/Compose host.
 - [x] Add CI for JVM tests, debug APK build, and APK artifact upload (without emulator dependency).
-- [ ] Verify current commit's APK artifact and stable signing certificate.
+- [x] Verify current commit's APK artifact and stable signing certificate (run #25).
 - [ ] Install on target phone and record device baseline and launch result.
 - [x] Commit reproducible host.
 
 **Evidence:** host commit e33794b6c55b2250462febccc1d5a9f2c42e4d5a. Workflow run [42723055744](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42723055744) passed JVM unit tests and debug APK build, then failed only because the Android emulator did not boot before timeout. Emulator removed from CI in commit 713465d470bdfb87bf73e823a873d72a2b8d8abc. Runs [#18](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42724827764) and [#19](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42729020851) used different ephemeral debug signatures. Run [#20](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42730184967) passed the fixed test-key check, JVM tests, APK build, signature verification, and artifact upload. The checked-in key is development-only and must never be reused for a production/release signing key.
 
-**Runner runtime maintenance:** GitHub announced the Node 20 retirement for JavaScript-based Actions. The workflow now uses Node 24-compatible action majors: checkout v6, setup-java v6, setup-gradle v6, and upload-artifact v6. Java remains 17 and Gradle remains 8.9; this is a runner-action runtime upgrade, not an Android toolchain upgrade. Verify the next run is warning-free and all steps pass.
+**Runner runtime maintenance:** GitHub announced the Node 20 retirement for JavaScript-based Actions. The workflow now uses Node 24-compatible action majors: checkout v6, setup-java v6, setup-gradle v6, and upload-artifact v6. Java remains 17 and Gradle remains 8.9; this is a runner-action runtime upgrade, not an Android toolchain upgrade. Run #21 completed all steps successfully with no Node 20 warnings.
 
 ## Task 2 — Basic CAD operations on phone
 - [x] Define model behavior tests for create/add/move/edit/delete/layer visibility/snapshot/reopen.
-- [x] Run model unit tests in CI (run #21: testDebugUnitTest passed).
+- [x] Run model unit tests in CI, including independent 50/500/2,000-entity snapshots and invalid-geometry guards (run #25).
 - [x] Implement the first project-scoped 2D drawing editor backed by Room and a 2→3 migration.
-- [ ] Run updated CI/build and verify the editor on the physical phone.
-- [ ] Test approximately 50, 500, and 2,000 entities; record touch latency, viewport usability, crashes, and save/reopen integrity.
+- [x] Build the editor APK, verify its debug signature, and upload the artifact (run #25).
+- [ ] Install on the physical phone and confirm launch/navigation into the drawing editor.
+- [ ] Test approximately 50, 500, and 2,000 entities on the phone; record touch latency, viewport usability, crashes, and save/reopen integrity.
 - [ ] Commit proof and result report.
 
-**Evidence:** ProofDrawingModel.kt and ProofDrawingModelTest.kt are in commit 59305f5c90a9aa7e051c5d8e6c0fc69e28b5ce42. Run #21 [passed testDebugUnitTest](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42732431688). This change adds a project-scoped Room drawing store, non-destructive 2→3 migration, and a Compose 2D editor for line/rectangle/circle/text primitives, layers, selection, drag move, edit/delete, zoom, pan, and automatic local save. Updated build and actual-device interaction remain pending.
+**Evidence:** Base model/test commit 59305f5c90a9aa7e051c5d8e6c0fc69e28b5ce42. The integrated editor was added in commit [24f7dc3](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/commit/24f7dc3e4454d5331bc567398ce1d48b48cb6d26); test and geometry guards were corrected in [2ad1b2b](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/commit/2ad1b2b095df9c7e2314964e4d656631de515db3), and the counter/zoom display in [5b588ef](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/commit/5b588ef85a56703c9e56ab4c8b33a49f596a6089), followed by the corrected overflow case in [ba66557](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/commit/ba66557d33f4b4886706a2cad6e3d6a0bd89c606). Run [#25](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/42739924057) passed testDebugUnitTest, assembleDebug, signature verification, and artifact upload. APK artifact SHA-256: d573c560a332d0cc02cb995f95dae18ae7199babbd5260b95bae2ac1567d1e41. The current editor supports line/rectangle/circle/text-placeholder primitives, layers, selection, drag move, edit/delete, zoom, pan, and automatic local save. Physical-device use and CAD file round-trip fidelity remain unverified.
 
 ## Task 3 — DXF import/edit/export
 - [ ] Assemble fixtures for line, polyline, circle, arc, text, dimensions, blocks, layers, units, and unknown entities.
