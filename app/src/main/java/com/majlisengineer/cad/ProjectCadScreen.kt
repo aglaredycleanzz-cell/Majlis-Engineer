@@ -17,7 +17,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.majlisengineer.data.CadDrawingEntity
@@ -38,6 +41,7 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
     val layers by dao.observeCadLayers(projectId).collectAsState(initial = emptyList())
     val entities by dao.observeCadEntities(projectId).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+    val textMeasurer = rememberTextMeasurer()
     var tool by remember { mutableStateOf(CadTool.Select) }
     var layerId by remember { mutableStateOf<String?>(null) }
     var selectedId by remember { mutableStateOf<String?>(null) }
@@ -175,7 +179,7 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
                     "LINE" -> drawLine(color, p, p + Offset(s.width, item.height.toFloat() * scale), strokeWidth = stroke)
                     "RECT" -> drawRect(color, p, s, style = Stroke(stroke))
                     "CIRCLE" -> drawCircle(color, s.width / 2f, p + Offset(s.width / 2f, s.height / 2f), style = Stroke(stroke))
-                    "TEXT" -> { drawLine(color, p, p + Offset(s.width, 0f), strokeWidth = 2f); drawLine(color, p, p + Offset(0f, s.height), strokeWidth = 2f) }
+                    "TEXT" -> drawText(textMeasurer, item.label.ifBlank { "نص" }, topLeft = p, style = TextStyle(color = color, fontSize = 14.sp))
                 }
                 if (item.id == selectedId) drawRect(Color(0xFF7B61A8), p - Offset(5f, 5f), Size(s.width + 10f, s.height + 10f), style = Stroke(1.5f))
             }
