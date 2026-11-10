@@ -144,7 +144,7 @@ private fun DashboardScreen(
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("مشروع ← معاينة وقياسات ← كميات وتكلفة ← مهام التنفيذ ← ملاحظات المخططات ← تقرير PDF", fontWeight = FontWeight.Medium)
-                Text("يتيح التطبيق تسجيل عناصر المشروع ومراجعتها ميدانيًا. المخططات في هذه النسخة عبارة عن سجل طبقات وملاحظات فنية، وليست محرر CAD/DWG.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("يتضمن ملف المشروع محرر رسم ثنائي الأبعاد أوليًا. استيراد وتصدير DXF وتحرير DWG والأبعاد الهندسية المتقدمة غير متاحة في هذا الإصدار بعد.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
