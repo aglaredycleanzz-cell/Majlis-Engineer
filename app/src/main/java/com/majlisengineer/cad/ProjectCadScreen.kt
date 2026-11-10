@@ -66,11 +66,11 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
                 Text("محرر الرسم ثنائي الأبعاد", fontWeight = FontWeight.Bold)
-                Text("\${entities.size} عنصر • \${layers.size} طبقة • الوحدة: متر", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(entities.size.toString() + " عنصر • " + layers.size.toString() + " طبقة • الوحدة: متر", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = { zoom = (zoom * 1.2f).coerceAtMost(4f) }) { Text("＋") }
-                Text("\${(zoom * 100).toInt()}%", fontSize = 11.sp)
+                Text((zoom * 100).toInt().toString() + "%", fontSize = 11.sp)
                 TextButton(onClick = { zoom = (zoom / 1.2f).coerceAtLeast(0.35f) }) { Text("－") }
                 TextButton(onClick = { zoom = 1f; pan = Offset.Zero }) { Text("إعادة") }
             }
