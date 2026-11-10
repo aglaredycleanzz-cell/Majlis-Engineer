@@ -36,11 +36,9 @@ class ProofDrawingModel {
     }
 
     fun addEntity(entity: ProofEntity): Boolean {
-        if (entity.id.isBlank() || entity.type.isBlank() ||
+        if (!isValidEntity(entity) ||
             !mutableLayers.containsKey(entity.layerId) ||
-            mutableEntities.containsKey(entity.id) ||
-            !entity.x.isFinite() || !entity.y.isFinite() ||
-            !entity.width.isFinite() || !entity.height.isFinite()
+            mutableEntities.containsKey(entity.id)
         ) return false
         mutableEntities[entity.id] = entity
         return true
@@ -49,13 +47,16 @@ class ProofDrawingModel {
     fun moveEntity(id: String, dx: Double, dy: Double): Boolean {
         val entity = mutableEntities[id] ?: return false
         if (!dx.isFinite() || !dy.isFinite()) return false
-        mutableEntities[id] = entity.copy(x = entity.x + dx, y = entity.y + dy)
+        val nextX = entity.x + dx
+        val nextY = entity.y + dy
+        if (!nextX.isFinite() || !nextY.isFinite()) return false
+        mutableEntities[id] = entity.copy(x = nextX, y = nextY)
         return true
     }
 
     fun editEntity(id: String, label: String, width: Double, height: Double): Boolean {
         val entity = mutableEntities[id] ?: return false
-        if (!width.isFinite() || !height.isFinite()) return false
+        if (!width.isFinite() || !height.isFinite() || width < 0.0 || height < 0.0) return false
         mutableEntities[id] = entity.copy(label = label, width = width, height = height)
         return true
     }
@@ -73,8 +74,11 @@ class ProofDrawingModel {
     fun reopen(snapshot: ProofDrawingSnapshot) {
         mutableLayers.clear()
         mutableEntities.clear()
-        snapshot.layers.forEach { mutableLayers[it.id] = it }
-        snapshot.entities.filter { mutableLayers.containsKey(it.layerId) }
+        snapshot.layers.filter { it.id.isNotBlank() && it.name.isNotBlank() }
+            .distinctBy { it.id }
+            .forEach { mutableLayers[it.id] = it }
+        snapshot.entities.filter { isValidEntity(it) && mutableLayers.containsKey(it.layerId) }
+            .distinctBy { it.id }
             .forEach { mutableEntities[it.id] = it }
     }
 
@@ -82,4 +86,15 @@ class ProofDrawingModel {
         val visibleIds = mutableLayers.values.filter { it.visible }.map { it.id }.toSet()
         return mutableEntities.values.filter { it.layerId in visibleIds }
     }
+
+    private fun isValidEntity(entity: ProofEntity): Boolean =
+        entity.id.isNotBlank() &&
+            entity.layerId.isNotBlank() &&
+            entity.type.isNotBlank() &&
+            entity.x.isFinite() &&
+            entity.y.isFinite() &&
+            entity.width.isFinite() &&
+            entity.height.isFinite() &&
+            entity.width >= 0.0 &&
+            entity.height >= 0.0
 }
