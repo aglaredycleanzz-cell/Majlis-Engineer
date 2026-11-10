@@ -23,11 +23,11 @@ class ProofDrawingModelTest {
     }
 
     @Test fun rejectsMovesThatOverflowCoordinates() {
-        val model = fixture()
-        assertFalse(model.moveEntity("line-1", Double.MAX_VALUE, 0.0))
-        val entity = model.entities.single()
-        assertEquals(1.0, entity.x, 0.0)
-        assertEquals(2.0, entity.y, 0.0)
+        val model = ProofDrawingModel()
+        assertTrue(model.createLayer("arch", "معماري"))
+        assertTrue(model.addEntity(ProofEntity("edge", "arch", "LINE", Double.MAX_VALUE, 0.0, 1.0, 0.0)))
+        assertFalse(model.moveEntity("edge", Double.MAX_VALUE, 0.0))
+        assertEquals(Double.MAX_VALUE, model.entities.single().x, 0.0)
     }
 
     @Test fun rejectsNegativeDimensionsAndInvalidEntities() {
