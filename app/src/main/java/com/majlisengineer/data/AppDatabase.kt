@@ -8,8 +8,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 @Database(
     entities = [MaterialCategoryEntity::class, MaterialEntity::class, MaterialImageEntity::class,
         ProjectEntity::class, SiteSurveyEntity::class, BoqItemEntity::class, ProjectTaskEntity::class,
-        DrawingNoteEntity::class, CadLayerEntity::class, CadDrawingEntity::class],
-    version = 5,
+        DrawingNoteEntity::class, CadLayerEntity::class, CadDrawingEntity::class,
+        SupplierEntity::class, MaterialSupplierOfferEntity::class, ProjectMaterialEntity::class],
+    version = 6,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -74,6 +75,25 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE projects ADD COLUMN startDate TEXT NOT NULL DEFAULT ''")
                 database.execSQL("ALTER TABLE projects ADD COLUMN expectedDeliveryDate TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE materials ADD COLUMN baseUnit TEXT NOT NULL DEFAULT 'قطعة'")
+                database.execSQL("ALTER TABLE materials ADD COLUMN brand TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE materials ADD COLUMN baseUnitPriceOmr REAL NOT NULL DEFAULT 0.0")
+                database.execSQL("ALTER TABLE materials ADD COLUMN basePriceUpdatedAt INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("CREATE TABLE IF NOT EXISTS suppliers (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, contactName TEXT NOT NULL, phone TEXT NOT NULL, email TEXT NOT NULL, location TEXT NOT NULL, notes TEXT NOT NULL, createdAt INTEGER NOT NULL)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_suppliers_name ON suppliers(name)")
+                database.execSQL("CREATE TABLE IF NOT EXISTS material_supplier_offers (id TEXT NOT NULL PRIMARY KEY, materialId TEXT NOT NULL, supplierId TEXT NOT NULL, brand TEXT NOT NULL, unit TEXT NOT NULL, unitPriceOmr REAL NOT NULL, notes TEXT NOT NULL, updatedAt INTEGER NOT NULL)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_material_supplier_offers_materialId ON material_supplier_offers(materialId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_material_supplier_offers_supplierId ON material_supplier_offers(supplierId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_material_supplier_offers_materialId_supplierId_updatedAt ON material_supplier_offers(materialId, supplierId, updatedAt)")
+                database.execSQL("CREATE TABLE IF NOT EXISTS project_materials (id TEXT NOT NULL PRIMARY KEY, projectId TEXT NOT NULL, materialId TEXT NOT NULL, unitSnapshot TEXT NOT NULL, requiredQuantity REAL NOT NULL, usedQuantity REAL NOT NULL, projectUnitPriceOverrideOmr REAL, createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_project_materials_projectId ON project_materials(projectId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_project_materials_materialId ON project_materials(materialId)")
+                database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_project_materials_projectId_materialId ON project_materials(projectId, materialId)")
             }
         }
     }

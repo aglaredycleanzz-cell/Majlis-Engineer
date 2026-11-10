@@ -20,14 +20,12 @@ jobs:
           java-version: "17"
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-version: "8.9"
       - name: Verify stable debug signing key
         run: keytool -list -keystore .github/keys/majlis-debug.keystore -storepass android -alias androiddebugkey
       - name: Run JVM unit tests
-        run: gradle --no-daemon testDebugUnitTest
+        run: ./gradlew --no-daemon testDebugUnitTest
       - name: Build debug APK
-        run: gradle --no-daemon assembleDebug
+        run: ./gradlew --no-daemon assembleDebug
       - name: Verify APK signature
         run: |
           $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose app/build/outputs/apk/debug/app-debug.apk

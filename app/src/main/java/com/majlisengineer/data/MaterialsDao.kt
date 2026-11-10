@@ -13,6 +13,8 @@ interface MaterialsDao {
     fun observeCategories(): Flow<List<MaterialCategoryEntity>>
     @Query("SELECT * FROM materials ORDER BY nameAr")
     fun observeMaterials(): Flow<List<MaterialEntity>>
+    @Update
+    suspend fun updateMaterial(material: MaterialEntity)
     @Query("SELECT * FROM materials WHERE categoryId=:categoryId ORDER BY nameAr")
     fun observeByCategory(categoryId: String): Flow<List<MaterialEntity>>
     @Query("SELECT * FROM materials WHERE normalizedSearchText LIKE '%' || :query || '%' ORDER BY nameAr")
@@ -25,6 +27,30 @@ interface MaterialsDao {
     suspend fun insertImage(image: MaterialImageEntity)
     @Query("SELECT COUNT(*) FROM material_categories")
     suspend fun categoryCount(): Int
+
+    @Query("SELECT * FROM suppliers ORDER BY name")
+    fun observeSuppliers(): Flow<List<SupplierEntity>>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSupplier(supplier: SupplierEntity)
+    @Update
+    suspend fun updateSupplier(supplier: SupplierEntity)
+    @Query("SELECT * FROM material_supplier_offers ORDER BY updatedAt DESC")
+    fun observeSupplierOffers(): Flow<List<MaterialSupplierOfferEntity>>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSupplierOffer(offer: MaterialSupplierOfferEntity)
+    @Update
+    suspend fun updateSupplierOffer(offer: MaterialSupplierOfferEntity)
+    @Query("DELETE FROM material_supplier_offers WHERE id=:id")
+    suspend fun deleteSupplierOffer(id: String)
+
+    @Query("SELECT * FROM project_materials WHERE projectId=:projectId ORDER BY createdAt")
+    fun observeProjectMaterials(projectId: String): Flow<List<ProjectMaterialEntity>>
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertProjectMaterial(item: ProjectMaterialEntity): Long
+    @Update
+    suspend fun updateProjectMaterial(item: ProjectMaterialEntity)
+    @Query("DELETE FROM project_materials WHERE id=:id")
+    suspend fun deleteProjectMaterial(id: String)
 
     @Query("SELECT * FROM projects ORDER BY createdAt DESC")
     fun observeProjects(): Flow<List<ProjectEntity>>
