@@ -55,6 +55,7 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
     var addLayer by remember { mutableStateOf(false) }
     var snapToGrid by remember { mutableStateOf(true) }
     var dragOrigin by remember { mutableStateOf(Offset.Zero) }
+    var dragCurrent by remember { mutableStateOf(Offset.Zero) }
     var dragEntity by remember { mutableStateOf<CadDrawingEntity?>(null) }
     var isPanning by remember { mutableStateOf(false) }
 
@@ -147,6 +148,7 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
                             val scale = CAD_PIXELS_PER_METER * zoom
                             val world = Offset((start.x - size.width / 2f - pan.x) / scale, (start.y - size.height / 2f - pan.y) / scale)
                             dragOrigin = if (snapToGrid && tool != CadTool.Select) snapPoint(world) else world
+                            dragCurrent = dragOrigin
                             if (tool == CadTool.Select) {
                                 dragEntity = findCadHit(visibleEntities, world, 0.25 / zoom)
                                 selectedId = dragEntity?.id
@@ -167,14 +169,14 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
                             if (tool == CadTool.Select) {
                                 val original = dragEntity
                                 if (original == null || isPanning) pan += delta
-                                else preview = original.copy(
-                                    x = original.x + delta.x / scale,
-                                    y = original.y + delta.y / scale,
+                                else preview = (preview ?: original).copy(
+                                    x = (preview ?: original).x + delta.x / scale,
+                                    y = (preview ?: original).y + delta.y / scale,
                                     updatedAt = System.currentTimeMillis()
                                 )
                             } else {
-                                val endRaw = Offset(dragOrigin.x + delta.x / scale, dragOrigin.y + delta.y / scale)
-                                val end = if (snapToGrid) snapPoint(endRaw) else endRaw
+                                dragCurrent = Offset(dragCurrent.x + delta.x / scale, dragCurrent.y + delta.y / scale)
+                                val end = if (snapToGrid) snapPoint(dragCurrent) else dragCurrent
                                 val start = dragOrigin
                                 val item = preview ?: return@detectDragGestures
                                 preview = when (tool) {
