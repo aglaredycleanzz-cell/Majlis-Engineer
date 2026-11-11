@@ -1,0 +1,58 @@
+name: Unpack uploaded project archive
+
+on:
+  push:
+    branches:
+      - feature/dxf-and-cost-summary
+    paths:
+      - .github/workflows/unpack-project-archive.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/dxf-and-cost-summary
+          fetch-depth: 0
+      - name: Verify archive and safely extract
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="Majlis-Engineer-project-v2.zip"
+          test -f "$archive"
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import PurePosixPath
+          archive = "Majlis-Engineer-project-v2.zip"
+          with zipfile.ZipFile(archive) as z:
+              bad = []
+              for info in z.infolist():
+                  name = info.filename.replace("\\\\", "/")
+                  path = PurePosixPath(name)
+                  if path.is_absolute() or ".." in path.parts:
+                      bad.append(info.filename)
+              if bad:
+                  raise SystemExit("Unsafe ZIP paths: " + repr(bad))
+              z.extractall("archive-unpacked")
+              print(f"Extracted {len(z.infolist())} ZIP entries")
+              print("\\n".join(z.namelist()))
+          PY
+      - name: Commit extracted files to repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add archive-unpacked
+          if git diff --cached --quiet; then
+            echo "No extracted-file changes to commit."
+            exit 0
+          fi
+          git commit -m "Extract uploaded project archive into repository"
+          git push origin HEAD:feature/dxf-and-cost-summary
