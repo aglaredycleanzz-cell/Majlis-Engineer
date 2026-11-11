@@ -1,6 +1,8 @@
 name: Validate uploaded Majlis Engineer archive
 
 on:
+  push:
+    branches: [ "feature/dxf-and-cost-summary" ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
