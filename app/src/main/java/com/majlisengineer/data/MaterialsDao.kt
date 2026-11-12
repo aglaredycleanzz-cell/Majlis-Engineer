@@ -52,6 +52,13 @@ interface MaterialsDao {
     @Query("DELETE FROM project_materials WHERE id=:id")
     suspend fun deleteProjectMaterial(id: String)
 
+    @Query("SELECT * FROM mep_route_segments WHERE projectId=:projectId ORDER BY createdAt")
+    fun observeMepRouteSegments(projectId: String): Flow<List<MepRouteSegmentEntity>>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMepRouteSegment(segment: MepRouteSegmentEntity)
+    @Query("DELETE FROM mep_route_segments WHERE id=:id AND projectId=:projectId")
+    suspend fun deleteMepRouteSegment(id: String, projectId: String)
+
     @Query("SELECT * FROM projects ORDER BY createdAt DESC")
     fun observeProjects(): Flow<List<ProjectEntity>>
     @Query("SELECT * FROM projects WHERE id=:projectId LIMIT 1")
