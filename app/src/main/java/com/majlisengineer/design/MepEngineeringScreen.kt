@@ -61,6 +61,7 @@ fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifie
     var diameter by remember { mutableStateOf("20") }
     var routeError by remember { mutableStateOf<String?>(null) }
     val quantitySummary = MepQuantityCalculator.summarize(routeSegments)
+    val clashReports = MepClashDetector.detect(routeSegments, requiredClearanceMm = 50.0)
 
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("مختبر التمديدات الهندسية", style = MaterialTheme.typography.headlineSmall)
@@ -188,7 +189,7 @@ fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifie
             Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
                 Column(Modifier.padding(12.dp)) {
                     Text("تنسيق الأنظمة", style = MaterialTheme.typography.titleSmall)
-                    Text("يعرض هذا الوضع مسارات النظامين معًا لتسهيل مراجعة التقاطعات بصريًا. فحص التعارضات الهندسي الآلي سيضاف في مرحلة لاحقة.", fontSize = 12.sp)
+                    Text("يعرض هذا الوضع المسارات معًا. يحسب فاحص التعارضات المسافة ثلاثية الأبعاد بين المقاطع، ولا يعتبر تقاطع المسقط الأفقي وحده تعارضًا.", fontSize = 12.sp)
                 }
             }
         }
@@ -268,6 +269,29 @@ fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifie
                     Text("${"%.2f".format(java.util.Locale.US, quantitySummary.electricalMeters)} م")
                 }
                 Text("عدد المقاطع: ${quantitySummary.segmentCount}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Divider()
+                Text("فحص التعارضات ثلاثي الأبعاد", style = MaterialTheme.typography.titleSmall)
+                Text("الخلوص الافتراضي: 50 مم بين الأسطح. هذه قيمة مراجعة أولية وليست اشتراطًا كوديًا معتمدًا.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (clashReports.isEmpty()) {
+                    Text("لا توجد تعارضات أو تحذيرات خلوص بين المقاطع المضافة حاليًا.", fontSize = 12.sp)
+                } else {
+                    Text("عدد التنبيهات: ${clashReports.size}", fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
+                    clashReports.forEach { clash ->
+                        val hard = clash.severity == MepClashSeverity.HARD_CLASH
+                        Card(
+                            Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (hard) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
+                            )
+                        ) {
+                            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text(if (hard) "تعارض فعلي محتمل" else "تحذير خلوص", style = MaterialTheme.typography.labelLarge)
+                                Text("${clash.first.discipline.label} (${clash.first.id}) ↔ ${clash.second.discipline.label} (${clash.second.id})", fontSize = 11.sp)
+                                Text("الخلوص المحسوب: ${"%.1f".format(java.util.Locale.US, clash.surfaceGapMeters * 1000.0)} مم", fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
                 routeSegments.forEach { segment ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
@@ -281,7 +305,7 @@ fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifie
             }
         }
 
-        Text("تنبيه هندسي: المسارات المضافة محفوظة ضمن ملف المشروع على الجهاز. الأقطار لا تمثل توصية تصميمية، ولا يوجد حتى الآن فحص تعارضات أو اعتماد تنفيذي. يجب مراجعة التصميم من مهندس مختص قبل التنفيذ.",
+        Text("تنبيه هندسي: المسارات محفوظة ضمن المشروع على الجهاز. الفحص تقريبي ويستخدم القطر الاسمي كقطر خارجي مرجعي، ولا يراعي العزل أو سماكة الجدار أو حوامل التثبيت أو اشتراطات الكود. لا يغني عن مراجعة مهندس مختص قبل التنفيذ.",
             fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
