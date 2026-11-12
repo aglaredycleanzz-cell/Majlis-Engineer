@@ -35,6 +35,17 @@ fun MepEngineeringScreen(modifier: Modifier = Modifier) {
     val length = lengthText.toDoubleOrNull()?.coerceIn(2.0, 30.0) ?: 8.0
     val width = widthText.toDoubleOrNull()?.coerceIn(2.0, 30.0) ?: 5.0
     val height = heightText.toDoubleOrNull()?.coerceIn(2.2, 8.0) ?: 3.2
+    var routeSegments by remember { mutableStateOf(emptyList<MepRouteSegment>()) }
+    var routeDiscipline by remember { mutableStateOf(MepDiscipline.WATER) }
+    var startX by remember { mutableStateOf("0.0") }
+    var startY by remember { mutableStateOf("0.0") }
+    var startZ by remember { mutableStateOf("0.25") }
+    var endX by remember { mutableStateOf("2.0") }
+    var endY by remember { mutableStateOf("0.0") }
+    var endZ by remember { mutableStateOf("0.25") }
+    var diameter by remember { mutableStateOf("20") }
+    var routeError by remember { mutableStateOf<String?>(null) }
+    val quantitySummary = MepQuantityCalculator.summarize(routeSegments)
 
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("مختبر التمديدات الهندسية", style = MaterialTheme.typography.headlineSmall)
@@ -107,6 +118,24 @@ fun MepEngineeringScreen(modifier: Modifier = Modifier) {
                             drawCircle(wire, 6f, it); drawCircle(Color(0xFF263746), 2.5f, it)
                         }
                     }
+                    routeSegments.filter { segment ->
+                        view == MepView.ALL ||
+                            (view == MepView.WATER && segment.discipline != MepDiscipline.ELECTRICAL) ||
+                            (view == MepView.POWER && segment.discipline == MepDiscipline.ELECTRICAL)
+                    }.forEach { segment ->
+                        val routeColor = when (segment.discipline) {
+                            MepDiscipline.WATER -> Color(0xFF36C5E8)
+                            MepDiscipline.DRAIN -> Color(0xFF8CA3B3)
+                            MepDiscipline.ELECTRICAL -> Color(0xFFFFC857)
+                        }
+                        drawLine(
+                            routeColor,
+                            p(segment.start.x.toFloat(), segment.start.y.toFloat(), segment.start.z.toFloat()),
+                            p(segment.end.x.toFloat(), segment.end.y.toFloat(), segment.end.z.toFloat()),
+                            6f,
+                            cap = StrokeCap.Round
+                        )
+                    }
                     if (showDimensions) {
                         drawLine(Color(0xFFB5C6D3), p(0f,w+0.35f,0f), p(l,w+0.35f,0f), 1.5f)
                         drawLine(Color(0xFFB5C6D3), p(-0.35f,0f,0f), p(-0.35f,w,0f), 1.5f)
@@ -148,7 +177,80 @@ fun MepEngineeringScreen(modifier: Modifier = Modifier) {
                 }
             }
         }
-        Text("تنبيه هندسي: المسارات الظاهرة نموذج توضيحي أولي وليست مخطط تنفيذ أو اعتماد. يجب إدخال مواقع الأجهزة والمناسيب والأقطار والأحمال الفعلية ومراجعتها من مهندس مختص قبل التنفيذ.",
+        Text("محرر المسارات الهندسية", style = MaterialTheme.typography.titleMedium)
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("أدخل نقطتي بداية ونهاية بالمتر داخل حدود الغرفة. سيحسب التطبيق طول المقطع ثلاثي الأبعاد.", fontSize = 12.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(MepDiscipline.WATER, MepDiscipline.DRAIN, MepDiscipline.ELECTRICAL).forEach { discipline ->
+                        FilterChip(
+                            selected = routeDiscipline == discipline,
+                            onClick = { routeDiscipline = discipline },
+                            label = { Text(discipline.label) }
+                        )
+                    }
+                }
+                Text("نقطة البداية (X، Y، Z)", style = MaterialTheme.typography.labelMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    DimensionField("X", startX, { startX = it }, Modifier.weight(1f))
+                    DimensionField("Y", startY, { startY = it }, Modifier.weight(1f))
+                    DimensionField("Z", startZ, { startZ = it }, Modifier.weight(1f))
+                }
+                Text("نقطة النهاية (X، Y، Z)", style = MaterialTheme.typography.labelMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    DimensionField("X", endX, { endX = it }, Modifier.weight(1f))
+                    DimensionField("Y", endY, { endY = it }, Modifier.weight(1f))
+                    DimensionField("Z", endZ, { endZ = it }, Modifier.weight(1f))
+                }
+                DimensionField("القطر الاسمي (مم) / مقاس مرجعي", diameter, { diameter = it }, Modifier.fillMaxWidth())
+                routeError?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
+                Button(
+                    onClick = {
+                        val segment = MepRouteSegment(
+                            id = "route-${System.nanoTime()}",
+                            discipline = routeDiscipline,
+                            start = MepPoint3D(startX.toDoubleOrNull() ?: Double.NaN, startY.toDoubleOrNull() ?: Double.NaN, startZ.toDoubleOrNull() ?: Double.NaN),
+                            end = MepPoint3D(endX.toDoubleOrNull() ?: Double.NaN, endY.toDoubleOrNull() ?: Double.NaN, endZ.toDoubleOrNull() ?: Double.NaN),
+                            nominalDiameterMm = diameter.toDoubleOrNull() ?: Double.NaN
+                        )
+                        if (!segment.isValid(length, width, height)) {
+                            routeError = "تحقق من الإحداثيات والقطر؛ يجب أن تقع النقطتان داخل أبعاد الغرفة وأن يكون القطر موجبًا."
+                        } else {
+                            routeSegments = routeSegments + segment
+                            routeError = null
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("＋ إضافة المقطع إلى النموذج") }
+                Divider()
+                Text("حصر أطوال المسارات المضافة", style = MaterialTheme.typography.titleSmall)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("تغذية المياه")
+                    Text("${"%.2f".format(java.util.Locale.US, quantitySummary.waterMeters)} م")
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("الصرف الصحي")
+                    Text("${"%.2f".format(java.util.Locale.US, quantitySummary.drainMeters)} م")
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("الكهرباء")
+                    Text("${"%.2f".format(java.util.Locale.US, quantitySummary.electricalMeters)} م")
+                }
+                Text("عدد المقاطع: ${quantitySummary.segmentCount}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                routeSegments.forEach { segment ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("${segment.discipline.label} • قطر ${segment.nominalDiameterMm.toInt()} مم", fontSize = 12.sp)
+                            Text("الطول: ${"%.2f".format(java.util.Locale.US, segment.lengthMeters)} م", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        TextButton(onClick = { routeSegments = routeSegments.filterNot { it.id == segment.id } }) { Text("حذف") }
+                    }
+                }
+                if (routeSegments.isEmpty()) Text("لم تتم إضافة مقاطع بعد.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        Text("تنبيه هندسي: المسارات التي تضيفها تُعرض داخل النموذج وتُحسب أطوالها في هذه الجلسة فقط؛ لم يُفعّل الحفظ الدائم بعد. الأقطار لا تمثل توصية تصميمية، ولا يوجد حتى الآن فحص تعارضات أو اعتماد تنفيذي. يجب مراجعة التصميم من مهندس مختص قبل التنفيذ.",
             fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
