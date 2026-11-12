@@ -266,6 +266,8 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
             ProjectCadScreen(dao, projectId, Modifier.weight(1f).fillMaxWidth())
         } else if (selectedTab == 7) {
             com.majlisengineer.design.MepEngineeringScreen(
+                dao = dao,
+                projectId = projectId,
                 modifier = Modifier.weight(1f).fillMaxWidth()
             )
         } else if (selectedTab == 4) {
