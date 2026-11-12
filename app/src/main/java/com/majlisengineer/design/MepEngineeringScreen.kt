@@ -9,6 +9,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.launch
+import com.majlisengineer.data.MaterialsDao
+import com.majlisengineer.data.MepRouteSegmentEntity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -24,7 +28,7 @@ import kotlin.math.sin
 private enum class MepView(val title: String) { ALL("التنسيق"), WATER("السباكة"), POWER("الكهرباء") }
 
 @Composable
-fun MepEngineeringScreen(modifier: Modifier = Modifier) {
+fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = Modifier) {
     var lengthText by remember { mutableStateOf("8.0") }
     var widthText by remember { mutableStateOf("5.0") }
     var heightText by remember { mutableStateOf("3.2") }
@@ -35,7 +39,18 @@ fun MepEngineeringScreen(modifier: Modifier = Modifier) {
     val length = lengthText.toDoubleOrNull()?.coerceIn(2.0, 30.0) ?: 8.0
     val width = widthText.toDoubleOrNull()?.coerceIn(2.0, 30.0) ?: 5.0
     val height = heightText.toDoubleOrNull()?.coerceIn(2.2, 8.0) ?: 3.2
-    var routeSegments by remember { mutableStateOf(emptyList<MepRouteSegment>()) }
+    val savedRouteEntities by dao.observeMepRouteSegments(projectId).collectAsState(initial = emptyList())
+    val routeSegments = savedRouteEntities.map { entity ->
+        MepRouteSegment(
+            id = entity.id,
+            discipline = runCatching { MepDiscipline.valueOf(entity.discipline) }.getOrDefault(MepDiscipline.WATER),
+            start = MepPoint3D(entity.startX, entity.startY, entity.startZ),
+            end = MepPoint3D(entity.endX, entity.endY, entity.endZ),
+            nominalDiameterMm = entity.nominalDiameterMm,
+            note = entity.note
+        )
+    }
+    val scope = rememberCoroutineScope()
     var routeDiscipline by remember { mutableStateOf(MepDiscipline.WATER) }
     var startX by remember { mutableStateOf("0.0") }
     var startY by remember { mutableStateOf("0.0") }
@@ -216,7 +231,23 @@ fun MepEngineeringScreen(modifier: Modifier = Modifier) {
                         if (!segment.isValid(length, width, height)) {
                             routeError = "تحقق من الإحداثيات والقطر؛ يجب أن تقع النقطتان داخل أبعاد الغرفة وأن يكون القطر موجبًا."
                         } else {
-                            routeSegments = routeSegments + segment
+                            scope.launch {
+                                dao.insertMepRouteSegment(
+                                    MepRouteSegmentEntity(
+                                        id = segment.id,
+                                        projectId = projectId,
+                                        discipline = segment.discipline.name,
+                                        startX = segment.start.x,
+                                        startY = segment.start.y,
+                                        startZ = segment.start.z,
+                                        endX = segment.end.x,
+                                        endY = segment.end.y,
+                                        endZ = segment.end.z,
+                                        nominalDiameterMm = segment.nominalDiameterMm,
+                                        note = segment.note
+                                    )
+                                )
+                            }
                             routeError = null
                         }
                     },
@@ -243,14 +274,14 @@ fun MepEngineeringScreen(modifier: Modifier = Modifier) {
                             Text("${segment.discipline.label} • قطر ${segment.nominalDiameterMm.toInt()} مم", fontSize = 12.sp)
                             Text("الطول: ${"%.2f".format(java.util.Locale.US, segment.lengthMeters)} م", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        TextButton(onClick = { routeSegments = routeSegments.filterNot { it.id == segment.id } }) { Text("حذف") }
+                        TextButton(onClick = { scope.launch { dao.deleteMepRouteSegment(segment.id, projectId) } }) { Text("حذف") }
                     }
                 }
                 if (routeSegments.isEmpty()) Text("لم تتم إضافة مقاطع بعد.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
-        Text("تنبيه هندسي: المسارات التي تضيفها تُعرض داخل النموذج وتُحسب أطوالها في هذه الجلسة فقط؛ لم يُفعّل الحفظ الدائم بعد. الأقطار لا تمثل توصية تصميمية، ولا يوجد حتى الآن فحص تعارضات أو اعتماد تنفيذي. يجب مراجعة التصميم من مهندس مختص قبل التنفيذ.",
+        Text("تنبيه هندسي: المسارات المضافة محفوظة ضمن ملف المشروع على الجهاز. الأقطار لا تمثل توصية تصميمية، ولا يوجد حتى الآن فحص تعارضات أو اعتماد تنفيذي. يجب مراجعة التصميم من مهندس مختص قبل التنفيذ.",
             fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
