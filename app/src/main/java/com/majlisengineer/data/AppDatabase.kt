@@ -9,8 +9,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [MaterialCategoryEntity::class, MaterialEntity::class, MaterialImageEntity::class,
         ProjectEntity::class, SiteSurveyEntity::class, BoqItemEntity::class, ProjectTaskEntity::class,
         DrawingNoteEntity::class, CadLayerEntity::class, CadDrawingEntity::class,
-        SupplierEntity::class, MaterialSupplierOfferEntity::class, ProjectMaterialEntity::class],
-    version = 6,
+        SupplierEntity::class, MaterialSupplierOfferEntity::class, ProjectMaterialEntity::class,
+        MepRouteSegmentEntity::class],
+    version = 7,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -75,6 +76,26 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE projects ADD COLUMN startDate TEXT NOT NULL DEFAULT ''")
                 database.execSQL("ALTER TABLE projects ADD COLUMN expectedDeliveryDate TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""CREATE TABLE IF NOT EXISTS mep_route_segments (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    projectId TEXT NOT NULL,
+                    discipline TEXT NOT NULL,
+                    startX REAL NOT NULL,
+                    startY REAL NOT NULL,
+                    startZ REAL NOT NULL,
+                    endX REAL NOT NULL,
+                    endY REAL NOT NULL,
+                    endZ REAL NOT NULL,
+                    nominalDiameterMm REAL NOT NULL,
+                    note TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL)""")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_mep_route_segments_projectId ON mep_route_segments(projectId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_mep_route_segments_discipline ON mep_route_segments(discipline)")
             }
         }
 
