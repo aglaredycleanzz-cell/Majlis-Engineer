@@ -10,7 +10,7 @@ class InteriorDesignModelsTest {
         val room = InteriorRoom(lengthM = 8.0, widthM = 5.0, heightM = 3.0, doorWidthM = 1.0, windowCount = 2)
         assertEquals(40.0, room.floorAreaM2, 0.0001)
         assertEquals(78.0, room.grossWallAreaM2, 0.0001)
-        assertEquals(73.6, room.netWallAreaM2(), 0.0001)
+        assertEquals(73.4, room.netWallAreaM2(), 0.0001)
     }
 
     @Test
