@@ -258,20 +258,14 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
             }
         }
         ScrollableTabRow(selectedTabIndex = selectedTab, edgePadding = 8.dp) {
-            listOf("الملخص", "المعاينة", "الكميات", "التنفيذ", "مواد المشروع", "الملاحظات", "الرسم الهندسي", "التصميم الداخلي").forEachIndexed { index, label ->
+            listOf("الملخص", "المعاينة", "الكميات", "التنفيذ", "مواد المشروع", "الملاحظات", "الرسم الهندسي", "السباكة والكهرباء 3D").forEachIndexed { index, label ->
                 Tab(selected = selectedTab == index, onClick = { selectedTab = index }, text = { Text(label) })
             }
         }
         if (selectedTab == 6) {
             ProjectCadScreen(dao, projectId, Modifier.weight(1f).fillMaxWidth())
         } else if (selectedTab == 7) {
-            com.majlisengineer.design.InteriorDesignScreen(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                onRoomConfirmed = { room ->
-                    Toast.makeText(context, "تم اعتماد مواصفات المجلس: " + String.format(Locale.US, "%.2f", room.floorAreaM2) + " م²", Toast.LENGTH_SHORT).show()
-                }
-            )
-        } else if (selectedTab == 4) {
+            com.majlisengineer.design.MepEngineeringScreen(\n                modifier = Modifier.weight(1f).fillMaxWidth()\n            )\n        } else if (selectedTab == 4) {
             ProjectMaterialsScreen(dao, projectId, Modifier.weight(1f).fillMaxWidth())
         } else {
         Column(
