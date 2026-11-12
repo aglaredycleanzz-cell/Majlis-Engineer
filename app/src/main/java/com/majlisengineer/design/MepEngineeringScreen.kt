@@ -1,6 +1,8 @@
 package com.majlisengineer.design
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -60,6 +62,8 @@ fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifie
     var endZ by remember { mutableStateOf("0.25") }
     var diameter by remember { mutableStateOf("20") }
     var routeError by remember { mutableStateOf<String?>(null) }
+    var routePickMode by remember { mutableStateOf(false) }
+    var pendingRouteStart by remember { mutableStateOf<MepPoint3D?>(null) }
     val quantitySummary = MepQuantityCalculator.summarize(routeSegments)
     val clashReports = MepClashDetector.detect(routeSegments, requiredClearanceMm = 50.0)
 
@@ -83,7 +87,38 @@ fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifie
                         TextButton(onClick = { camera += 0.18f }) { Text("↷") }
                     }
                 }
-                Canvas(Modifier.fillMaxWidth().height(300.dp).background(Color(0xFF101B25), RoundedCornerShape(12.dp))) {
+                Canvas(
+                    Modifier.fillMaxWidth().height(300.dp)
+                        .background(Color(0xFF101B25), RoundedCornerShape(12.dp))
+                        .pointerInput(routePickMode, length, width, camera) {
+                            detectTapGestures { tap ->
+                                if (routePickMode) {
+                                    val c = cos(camera); val s = sin(camera)
+                                    val scale = minOf(size.width / (length.toFloat() + width.toFloat() * 0.9f + 2f), size.height / (height.toFloat() * 1.5f + 8f)) * 0.72f
+                                    val ox = size.width * 0.49f
+                                    val oy = size.height * 0.76f
+                                    val sx = (tap.x - ox) / (scale * 0.78f)
+                                    val sy = (oy - tap.y) / (scale * 0.42f)
+                                    val rx = (sx + sy) / 2f
+                                    val ry = (sy - sx) / 2f
+                                    val x = (rx * c + ry * s).toDouble().coerceIn(0.0, length)
+                                    val y = (-rx * s + ry * c).toDouble().coerceIn(0.0, width)
+                                    val z = startZ.toDoubleOrNull()?.coerceIn(0.0, height) ?: 0.25
+                                    val picked = MepPoint3D(x, y, z)
+                                    if (pendingRouteStart == null) {
+                                        pendingRouteStart = picked
+                                        startX = "%.2f".format(java.util.Locale.US, x)
+                                        startY = "%.2f".format(java.util.Locale.US, y)
+                                    } else {
+                                        endX = "%.2f".format(java.util.Locale.US, x)
+                                        endY = "%.2f".format(java.util.Locale.US, y)
+                                        pendingRouteStart = null
+                                        routePickMode = false
+                                    }
+                                }
+                            }
+                        }
+                ) {
                     val c = cos(camera); val s = sin(camera)
                     val scale = minOf(size.width / (length.toFloat() + width.toFloat() * 0.9f + 2f), size.height / (height.toFloat() * 1.5f + 8f)) * 0.72f
                     val ox = size.width * 0.49f
@@ -152,6 +187,9 @@ fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifie
                             cap = StrokeCap.Round
                         )
                     }
+                    pendingRouteStart?.let { point ->
+                        drawCircle(Color(0xFF63E6A5), 9f, p(point.x.toFloat(), point.y.toFloat(), point.z.toFloat()))
+                    }
                     if (showDimensions) {
                         drawLine(Color(0xFFB5C6D3), p(0f,w+0.35f,0f), p(l,w+0.35f,0f), 1.5f)
                         drawLine(Color(0xFFB5C6D3), p(-0.35f,0f,0f), p(-0.35f,w,0f), 1.5f)
@@ -205,6 +243,18 @@ fun MepEngineeringScreen(dao: MaterialsDao, projectId: String, modifier: Modifie
                             label = { Text(discipline.label) }
                         )
                     }
+                }
+                OutlinedButton(
+                    onClick = {
+                        routePickMode = !routePickMode
+                        pendingRouteStart = null
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (routePickMode) "انقر داخل أرضية الغرفة: البداية ثم النهاية" else "＋ تحديد نقطتي المسار بالنقر على المجسم")
+                }
+                if (routePickMode) {
+                    Text("وضع الالتقاط نشط: انقر نقطة البداية ثم نقطة النهاية على أرضية الغرفة. قيمة Z تؤخذ من حقل الارتفاع أدناه.", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                 }
                 Text("نقطة البداية (X، Y، Z)", style = MaterialTheme.typography.labelMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
