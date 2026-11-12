@@ -40,7 +40,7 @@ class MepClashDetectorTest {
         val water = segment("water-1", MepDiscipline.WATER,
             MepPoint3D(0.0, 0.0, 1.0), MepPoint3D(2.0, 0.0, 1.0))
         val electrical = segment("elec-1", MepDiscipline.ELECTRICAL,
-            MepPoint3D(0.0, 0.07, 1.0), MepPoint3D(2.0, 0.07, 1.0))
+            MepPoint3D(0.0, 0.06, 1.0), MepPoint3D(2.0, 0.06, 1.0))
 
         val clashes = MepClashDetector.detect(listOf(water, electrical), requiredClearanceMm = 50.0)
         assertEquals(1, clashes.size)
