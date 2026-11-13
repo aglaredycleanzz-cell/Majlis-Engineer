@@ -32,7 +32,7 @@
 - [x] Verify output independently and document preserved, changed, unsupported, or lost entities (ezdxf strict read + audit of exported file; see `dxf-support-matrix.md`). AutoCAD/LibreCAD not tested.
 - [ ] Commit support matrix and evidence.
 
-**Evidence/status (Task 3):** internal ASCII DXF reader/writer in `cad/dxf/` with `DxfReaderTest` + `DxfWriterTest`; previous local check reported 26/26 JVM tests passed using kotlinc 2.0.21, and an exported R2000 file passed ezdxf 1.4.5 `readfile` and `audit()` with 0 errors. A Room/UI adapter now exists and records explicit omissions, but the current changes have not yet passed CI. The connected flow has not been opened in AutoCAD, tested on a phone, or tested with real AutoCAD-authored DXF files.
+**Evidence/status (Task 3):** internal ASCII DXF reader/writer in `cad/dxf/` with `DxfReaderTest` + `DxfWriterTest`; previous local check reported 26/26 JVM tests passed using kotlinc 2.0.21, and an exported R2000 file passed ezdxf 1.4.5 `readfile` and `audit()` with 0 errors. The Room/UI adapter and the entire version 0.9.0 codebase passed JVM tests and APK build/signature verification in [CI #43343057442](https://github.com/aglaredycleanzz-cell/Majlis-Engineer/actions/runs/43343057442). The connected flow has not been opened in AutoCAD, tested on a phone, or tested with real AutoCAD-authored DXF files.
 
 ## Task 4 — DWG-to-DXF conversion
 - [ ] Obtain three legitimate representative DWG fixtures.
