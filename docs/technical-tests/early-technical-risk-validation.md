@@ -42,7 +42,7 @@
 - [ ] Commit comparison and decision.
 
 ## Task 5 — 3D performance on target phone
-- [ ] Evaluate SceneView/Filament compatibility, maintenance, and licensing.
+- [x] Evaluate SceneView/Filament compatibility, maintenance, and licensing.
 - [ ] Create representative majlis scene and state tests.
 - [ ] Add frame-time and memory diagnostics.
 - [ ] Run 10-minute interaction test on physical phone.
@@ -50,6 +50,8 @@
 - [ ] Apply provisional threshold: at least 30 average FPS, no crash/ANR/sustained freeze; document repeated drops below 15 FPS for over one second.
 - [ ] Decide enable/reduce/defer without blocking 2D or project workflows.
 - [ ] Commit results and decision.
+
+**Decision/evidence (2026-11-14):** SceneView `2.3.0` chosen for the first Android/Compose integration because its published metadata/source matches the repository's Kotlin `2.0.21` toolchain; Maven dependency resolution succeeded locally, and the `Scene`/`CylinderNode`/`CubeNode`/material/camera APIs used by the prototype were compared with the `2.3.0` source. The upstream project is Apache-2.0 licensed (`https://github.com/sceneview/sceneview/blob/v2.3.0/LICENSE`). This resolves the library-selection question only; it does **not** establish successful APK compilation, rendering, maintenance guarantees, or usable performance on the target phone. Keep all physical-device gates open.
 
 ## Task 6 — Technical decision record
 - [ ] Mark each risk PASS, CONDITIONAL, or DEFERRED with evidence links.

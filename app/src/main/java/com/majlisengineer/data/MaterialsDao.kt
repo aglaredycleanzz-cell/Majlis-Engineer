@@ -138,4 +138,11 @@ interface MaterialsDao {
     suspend fun updateCadLayer(layer: CadLayerEntity)
     @Query("DELETE FROM cad_entities WHERE id=:id")
     suspend fun deleteCadEntity(id: String)
+
+    @Query("SELECT * FROM mep_elements WHERE projectId=:projectId AND surveyId=:surveyId ORDER BY createdAt, id")
+    fun observeMepElements(projectId: String, surveyId: String): Flow<List<MepElementEntity>>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveMepElement(element: MepElementEntity)
+    @Query("DELETE FROM mep_elements WHERE id=:id AND projectId=:projectId")
+    suspend fun deleteMepElement(id: String, projectId: String)
 }

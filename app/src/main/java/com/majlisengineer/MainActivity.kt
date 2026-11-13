@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 import com.majlisengineer.data.*
 import com.majlisengineer.cad.ProjectCadScreen
+import com.majlisengineer.mep.ProjectMepScreen
 import com.majlisengineer.costs.CostCalculator
 import com.majlisengineer.costs.ProjectCostAdjustments
 import com.majlisengineer.costs.ProjectCostLine
@@ -282,7 +283,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
             }
         }
         ScrollableTabRow(selectedTabIndex = selectedTab, edgePadding = 8.dp) {
-            listOf("الملخص", "المعاينة", "الكميات", "التنفيذ", "مواد المشروع", "الملاحظات", "الرسم الهندسي", "التصميم الداخلي").forEachIndexed { index, label ->
+            listOf("الملخص", "المعاينة", "الكميات", "التنفيذ", "مواد المشروع", "الملاحظات", "الرسم الهندسي", "التصميم الداخلي", "أنظمة MEP 3D").forEachIndexed { index, label ->
                 Tab(selected = selectedTab == index, onClick = { selectedTab = index }, text = { Text(label) })
             }
         }
@@ -302,6 +303,8 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                     Toast.makeText(context, "حُفظ التصميم وربط بالمشروع — مساحة الأرضية ${String.format(Locale.US, "%.2f", room.floorAreaM2)} م²", Toast.LENGTH_SHORT).show()
                 }
             )
+        } else if (selectedTab == 8) {
+            ProjectMepScreen(dao, projectId, surveys, Modifier.weight(1f).fillMaxWidth())
         } else if (selectedTab == 4) {
             ProjectMaterialsScreen(dao, projectId, Modifier.weight(1f).fillMaxWidth())
         } else {

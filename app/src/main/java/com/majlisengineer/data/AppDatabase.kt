@@ -10,8 +10,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ProjectEntity::class, SiteSurveyEntity::class, BoqItemEntity::class, ProjectTaskEntity::class,
         DrawingNoteEntity::class, CadLayerEntity::class, CadDrawingEntity::class,
         SupplierEntity::class, MaterialSupplierOfferEntity::class, ProjectMaterialEntity::class,
-        ProjectCostSettingsEntity::class, InteriorDesignEntity::class, DxfImportRecordEntity::class],
-    version = 7,
+        ProjectCostSettingsEntity::class, InteriorDesignEntity::class, DxfImportRecordEntity::class,
+        MepElementEntity::class],
+    version = 8,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -112,6 +113,18 @@ abstract class AppDatabase : RoomDatabase() {
                     originalPath TEXT NOT NULL, unitsCode INTEGER NOT NULL, importedEntityCount INTEGER NOT NULL,
                     omittedEntityCount INTEGER NOT NULL, conversionNotes TEXT NOT NULL, importedAt INTEGER NOT NULL)""")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_dxf_import_records_projectId ON dxf_import_records(projectId)")
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""CREATE TABLE IF NOT EXISTS mep_elements (
+                    id TEXT NOT NULL PRIMARY KEY, projectId TEXT NOT NULL, surveyId TEXT NOT NULL, system TEXT NOT NULL,
+                    elementType TEXT NOT NULL, geometryData TEXT NOT NULL, nominalDiameterMm REAL NOT NULL,
+                    material TEXT NOT NULL, label TEXT NOT NULL, createdAt INTEGER NOT NULL)""")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_mep_elements_projectId ON mep_elements(projectId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_mep_elements_projectId_surveyId ON mep_elements(projectId, surveyId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_mep_elements_projectId_surveyId_system ON mep_elements(projectId, surveyId, system)")
             }
         }
     }
