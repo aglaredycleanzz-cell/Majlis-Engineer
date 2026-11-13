@@ -84,21 +84,28 @@ object MajlisLayoutPlanner {
      * The output is a 2D placement proposal, not a construction drawing.
      */
     fun perimeterSeating(room: InteriorRoom, seatDepthM: Double = 0.85): List<InteriorElement> {
+        return seating(room, SeatingLayout.PERIMETER, seatDepthM)
+    }
+
+    fun seating(room: InteriorRoom, layout: SeatingLayout, seatDepthM: Double = 0.82): List<InteriorElement> {
         room.validate()
         require(seatDepthM in 0.5..1.3)
-        val elements = mutableListOf<InteriorElement>()
         val gap = 0.08
-        val run = max(0.0, room.lengthM - 2 * seatDepthM - 2 * gap)
-        if (run > 0.5) {
-            elements += InteriorElement("seat-back", "SEATING", seatDepthM, gap, run, seatDepthM, label = "جلسة خلفية")
-            elements += InteriorElement("seat-front", "SEATING", seatDepthM, room.widthM - seatDepthM - gap,
-                run, seatDepthM, label = "جلسة أمامية")
-        }
-        val sideRun = max(0.0, room.widthM - 2 * seatDepthM - 2 * gap)
-        if (sideRun > 0.5) {
-            elements += InteriorElement("seat-left", "SEATING", gap, seatDepthM, seatDepthM, sideRun, label = "جلسة جانبية")
-            elements += InteriorElement("seat-right", "SEATING", room.lengthM - seatDepthM - gap, seatDepthM,
-                seatDepthM, sideRun, label = "جلسة جانبية")
+        val horizontalRun = max(0.0, room.lengthM - 2 * seatDepthM - 2 * gap)
+        val verticalRun = max(0.0, room.widthM - 2 * seatDepthM - 2 * gap)
+        val top = if (horizontalRun > 0.5) InteriorElement("seat-top", "SEATING", seatDepthM + gap, gap,
+            horizontalRun, seatDepthM, label = "جلسة خلفية") else null
+        val bottom = if (horizontalRun > 0.5) InteriorElement("seat-bottom", "SEATING", seatDepthM + gap,
+            room.widthM - seatDepthM - gap, horizontalRun, seatDepthM, label = "جلسة أمامية") else null
+        val left = if (verticalRun > 0.5) InteriorElement("seat-left", "SEATING", gap, seatDepthM + gap,
+            seatDepthM, verticalRun, label = "جلسة جانبية") else null
+        val right = if (verticalRun > 0.5) InteriorElement("seat-right", "SEATING", room.lengthM - seatDepthM - gap,
+            seatDepthM + gap, seatDepthM, verticalRun, label = "جلسة جانبية") else null
+        val elements = when (layout) {
+            SeatingLayout.PERIMETER -> listOfNotNull(top, bottom, left, right)
+            SeatingLayout.U_SHAPE -> listOfNotNull(top, left, right)
+            SeatingLayout.L_SHAPE -> listOfNotNull(top, left)
+            SeatingLayout.MIXED -> listOfNotNull(top, bottom)
         }
         return elements.filter { it.isInside(room) }
     }

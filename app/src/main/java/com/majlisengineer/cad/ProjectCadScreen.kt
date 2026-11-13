@@ -72,7 +72,7 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
     val visibleLayers = layers.filter { it.visible }.map { it.id }.toSet()
     val visibleEntities = entities.filter { it.layerId in visibleLayers }
     val selected = entities.firstOrNull { it.id == selectedId }
-    val renderItems = if (preview == null) visibleEntities else visibleEntities.map { if (it.id == preview!!.id) preview!! else it }
+    val renderItems = mergeCadPreview(visibleEntities, preview)
 
     Column(modifier.fillMaxSize().padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -113,6 +113,7 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
             }
             item { OutlinedButton(onClick = { addLayer = true }) { Text("＋ طبقة") } }
         }
+        DxfProjectFiles(dao, projectId, layers, entities)
         Text(
             when (tool) {
                 CadTool.Select -> "التحديد: اسحب العنصر لتحريكه، أو اسحب مساحة فارغة لتحريك اللوحة"
@@ -251,6 +252,12 @@ fun ProjectCadScreen(dao: MaterialsDao, projectId: String, modifier: Modifier = 
         layerId = layer.id
         addLayer = false
     }
+}
+
+internal fun mergeCadPreview(entities: List<CadDrawingEntity>, preview: CadDrawingEntity?): List<CadDrawingEntity> {
+    if (preview == null) return entities
+    val index = entities.indexOfFirst { it.id == preview.id }
+    return if (index < 0) entities + preview else entities.toMutableList().also { it[index] = preview }
 }
 
 private fun snapPoint(point: Offset): Offset = Offset(

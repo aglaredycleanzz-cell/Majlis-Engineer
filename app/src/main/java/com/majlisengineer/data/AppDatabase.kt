@@ -9,8 +9,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [MaterialCategoryEntity::class, MaterialEntity::class, MaterialImageEntity::class,
         ProjectEntity::class, SiteSurveyEntity::class, BoqItemEntity::class, ProjectTaskEntity::class,
         DrawingNoteEntity::class, CadLayerEntity::class, CadDrawingEntity::class,
-        SupplierEntity::class, MaterialSupplierOfferEntity::class, ProjectMaterialEntity::class],
-    version = 6,
+        SupplierEntity::class, MaterialSupplierOfferEntity::class, ProjectMaterialEntity::class,
+        ProjectCostSettingsEntity::class, InteriorDesignEntity::class, DxfImportRecordEntity::class],
+    version = 7,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -94,6 +95,23 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_project_materials_projectId ON project_materials(projectId)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_project_materials_materialId ON project_materials(materialId)")
                 database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_project_materials_projectId_materialId ON project_materials(projectId, materialId)")
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""CREATE TABLE IF NOT EXISTS project_cost_settings (
+                    projectId TEXT NOT NULL PRIMARY KEY, transportOmr REAL NOT NULL, additionalExpensesOmr REAL NOT NULL,
+                    discountPercent REAL NOT NULL, discountFixedOmr REAL NOT NULL, updatedAt INTEGER NOT NULL)""")
+                database.execSQL("""CREATE TABLE IF NOT EXISTS interior_designs (
+                    projectId TEXT NOT NULL PRIMARY KEY, lengthM REAL NOT NULL, widthM REAL NOT NULL, heightM REAL NOT NULL,
+                    doorWidthM REAL NOT NULL, windowCount INTEGER NOT NULL, style TEXT NOT NULL, seating TEXT NOT NULL,
+                    palette TEXT NOT NULL, updatedAt INTEGER NOT NULL)""")
+                database.execSQL("""CREATE TABLE IF NOT EXISTS dxf_import_records (
+                    id TEXT NOT NULL PRIMARY KEY, projectId TEXT NOT NULL, originalFileName TEXT NOT NULL,
+                    originalPath TEXT NOT NULL, unitsCode INTEGER NOT NULL, importedEntityCount INTEGER NOT NULL,
+                    omittedEntityCount INTEGER NOT NULL, conversionNotes TEXT NOT NULL, importedAt INTEGER NOT NULL)""")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_dxf_import_records_projectId ON dxf_import_records(projectId)")
             }
         }
     }

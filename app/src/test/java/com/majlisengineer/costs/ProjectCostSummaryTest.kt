@@ -89,6 +89,19 @@ class ProjectCostSummaryTest {
         assertFalse(lines.isEmpty())
     }
 
+    @Test fun fixedDiscountCannotExceedSalesAfterPercentageDiscount() {
+        val lines = listOf(line(1.0, 0.1, 0.0, 10.0))
+        val allowed = ProjectCostSummaryCalculator.summarize(
+            lines, ProjectCostAdjustments(discountPercent = 10.0, discountFixedOmr = 9.0)
+        )
+        assertDecimal("0.000", allowed.netSalesOmr)
+        assertThrows(IllegalArgumentException::class.java) {
+            ProjectCostSummaryCalculator.summarize(
+                lines, ProjectCostAdjustments(discountPercent = 10.0, discountFixedOmr = 9.001)
+            )
+        }
+    }
+
     private fun assertDecimal(expected: String, actual: BigDecimal) {
         assertEquals(0, BigDecimal(expected).compareTo(actual))
     }

@@ -26,4 +26,14 @@ class InteriorDesignModelsTest {
         assertTrue(seating.isNotEmpty())
         assertTrue(seating.all { it.isInside(room) })
     }
+
+    @Test
+    fun seatingPlannerHonorsTheSelectedLayout() {
+        val room = InteriorRoom()
+        assertEquals(4, MajlisLayoutPlanner.seating(room, SeatingLayout.PERIMETER).size)
+        assertEquals(3, MajlisLayoutPlanner.seating(room, SeatingLayout.U_SHAPE).size)
+        assertEquals(2, MajlisLayoutPlanner.seating(room, SeatingLayout.L_SHAPE).size)
+        assertEquals(2, MajlisLayoutPlanner.seating(room, SeatingLayout.MIXED).size)
+        assertTrue(SeatingLayout.values().flatMap { MajlisLayoutPlanner.seating(room, it) }.all { it.isInside(room) })
+    }
 }

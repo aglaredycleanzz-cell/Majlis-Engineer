@@ -21,7 +21,11 @@ import androidx.compose.ui.unit.sp
 import java.util.Locale
 
 @Composable
-fun InteriorDesignScreen(modifier: Modifier = Modifier, onRoomConfirmed: (InteriorRoom) -> Unit = {}) {
+fun InteriorDesignScreen(
+    modifier: Modifier = Modifier,
+    savedDesign: com.majlisengineer.data.InteriorDesignEntity? = null,
+    onSaveDesign: (InteriorRoom) -> Unit = {}
+) {
     var length by remember { mutableStateOf("8.0") }
     var width by remember { mutableStateOf("5.0") }
     var height by remember { mutableStateOf("3.2") }
@@ -30,6 +34,15 @@ fun InteriorDesignScreen(modifier: Modifier = Modifier, onRoomConfirmed: (Interi
     var style by remember { mutableStateOf(MajlisStyle.OMANI_TRADITIONAL) }
     var seating by remember { mutableStateOf(SeatingLayout.PERIMETER) }
     var palette by remember { mutableStateOf(FinishPalette.SAND) }
+    LaunchedEffect(savedDesign?.updatedAt) {
+        savedDesign?.let { saved ->
+            length = saved.lengthM.toString(); width = saved.widthM.toString(); height = saved.heightM.toString()
+            doorWidth = saved.doorWidthM.toString(); windows = saved.windowCount.toString()
+            style = MajlisStyle.values().firstOrNull { it.name == saved.style } ?: MajlisStyle.OMANI_TRADITIONAL
+            seating = SeatingLayout.values().firstOrNull { it.name == saved.seating } ?: SeatingLayout.PERIMETER
+            palette = FinishPalette.values().firstOrNull { it.name == saved.palette } ?: FinishPalette.SAND
+        }
+    }
     val room = InteriorRoom(length.toDoubleOrNull() ?: 0.0, width.toDoubleOrNull() ?: 0.0,
         height.toDoubleOrNull() ?: 0.0, doorWidth.toDoubleOrNull() ?: 0.0, windows.toIntOrNull() ?: -1, style, seating, palette)
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -75,15 +88,11 @@ fun InteriorDesignScreen(modifier: Modifier = Modifier, onRoomConfirmed: (Interi
                         val x = (size.width - rw) / 2f
                         val y = (size.height - rh) / 2f
                         drawRect(Color(0xFF51483E), Offset(x, y), Size(rw, rh), style = Stroke(5f))
-                        val d = 0.82f * scale
                         val sofa = readColor(palette.accentHex)
-                        if (seating != SeatingLayout.L_SHAPE) {
-                            drawRect(sofa, Offset(x + d, y + 4f), Size(rw - d * 2, d))
-                            drawRect(sofa, Offset(x + d, y + rh - d - 4f), Size(rw - d * 2, d))
-                        }
-                        drawRect(sofa, Offset(x + 4f, y + d), Size(d, rh - d * 2))
-                        if (seating == SeatingLayout.PERIMETER || seating == SeatingLayout.U_SHAPE || seating == SeatingLayout.MIXED) {
-                            drawRect(sofa, Offset(x + rw - d - 4f, y + d), Size(d, rh - d * 2))
+                        MajlisLayoutPlanner.seating(room, seating).forEach { element ->
+                            drawRect(sofa,
+                                Offset(x + element.xM.toFloat() * scale, y + element.yM.toFloat() * scale),
+                                Size(element.widthM.toFloat() * scale, element.depthM.toFloat() * scale))
                         }
                         val door = room.doorWidthM.toFloat() * scale
                         drawLine(Color(0xFFF8F5EF), Offset(x, y + rh * 0.72f), Offset(x, y + rh * 0.72f + door), 8f)
@@ -109,11 +118,11 @@ fun InteriorDesignScreen(modifier: Modifier = Modifier, onRoomConfirmed: (Interi
                     Text("تقدير صافي الجدران يفترض بابًا بارتفاع 2.2 م ونافذة 1.2 م² لكل نافذة.", fontSize = 11.sp)
                 }
             }
-            Button(onClick = { onRoomConfirmed(room) }, modifier = Modifier.fillMaxWidth()) { Text("اعتماد مواصفات المجلس") }
+            Button(onClick = { onSaveDesign(room) }, modifier = Modifier.fillMaxWidth()) { Text("حفظ واعتماد التصميم للمشروع") }
         } else {
             Text("الأبعاد غير صحيحة. الطول والعرض 2–30 م، الارتفاع 2.2–8 م، وعرض الباب 0.6–2.5 م.", color = MaterialTheme.colorScheme.error)
         }
-        Text("هذه مرحلة تأسيسية: لا تحفظ التصميم الدائم بعد. سيضاف حفظ المشروع والتحرير الحر والأثاث التفصيلي والعرض 3D لاحقًا.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("التصميم المحفوظ مرتبط بهذا المشروع ويستعيد أبعاده وخياراته عند إعادة فتحه. المعاينة ثنائية الأبعاد مفاهيمية وليست مخططًا تنفيذيًا أو تصميم 3D.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

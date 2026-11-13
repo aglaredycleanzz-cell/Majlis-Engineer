@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
@@ -94,6 +95,32 @@ interface MaterialsDao {
     suspend fun insertDrawingNote(note: DrawingNoteEntity)
     @Query("DELETE FROM drawing_notes WHERE id=:id")
     suspend fun deleteDrawingNote(id: String)
+
+    @Query("SELECT * FROM project_cost_settings WHERE projectId=:projectId LIMIT 1")
+    fun observeProjectCostSettings(projectId: String): Flow<ProjectCostSettingsEntity?>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveProjectCostSettings(settings: ProjectCostSettingsEntity)
+
+    @Query("SELECT * FROM interior_designs WHERE projectId=:projectId LIMIT 1")
+    fun observeInteriorDesign(projectId: String): Flow<InteriorDesignEntity?>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveInteriorDesign(design: InteriorDesignEntity)
+
+    @Query("SELECT * FROM dxf_import_records WHERE projectId=:projectId ORDER BY importedAt DESC")
+    fun observeDxfImports(projectId: String): Flow<List<DxfImportRecordEntity>>
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertDxfImport(record: DxfImportRecordEntity)
+
+    @Transaction
+    suspend fun insertDxfImportTransaction(
+        layers: List<CadLayerEntity>,
+        entities: List<CadDrawingEntity>,
+        record: DxfImportRecordEntity
+    ) {
+        if (layers.isNotEmpty()) insertCadLayers(layers)
+        entities.forEach { insertCadEntity(it) }
+        insertDxfImport(record)
+    }
 
     @Query("SELECT * FROM cad_layers WHERE projectId=:projectId ORDER BY sortOrder")
     fun observeCadLayers(projectId: String): Flow<List<CadLayerEntity>>

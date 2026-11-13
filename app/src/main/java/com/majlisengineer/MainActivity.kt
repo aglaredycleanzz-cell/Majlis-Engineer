@@ -23,6 +23,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import com.majlisengineer.data.*
 import com.majlisengineer.cad.ProjectCadScreen
 import com.majlisengineer.costs.CostCalculator
+import com.majlisengineer.costs.ProjectCostAdjustments
+import com.majlisengineer.costs.ProjectCostLine
+import com.majlisengineer.costs.ProjectCostSummaryCalculator
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.UUID
@@ -146,7 +149,7 @@ private fun DashboardScreen(
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("مشروع ← معاينة وقياسات ← كميات وتكلفة ← مهام التنفيذ ← ملاحظات المخططات ← تقرير PDF", fontWeight = FontWeight.Medium)
-                Text("يتضمن ملف المشروع محرر رسم ثنائي الأبعاد أوليًا. استيراد وتصدير DXF وتحرير DWG والأبعاد الهندسية المتقدمة غير متاحة في هذا الإصدار بعد.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("يتضمن ملف المشروع محرر 2D واستيراد/تصدير DXF لعناصر محدودة مع تحذيرات وحفظ الأصل؛ DWG والأبعاد الهندسية المتقدمة غير متاحة.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -212,6 +215,8 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
     val boqItems by dao.observeBoqItems(projectId).collectAsState(initial = emptyList())
     val tasks by dao.observeTasks(projectId).collectAsState(initial = emptyList())
     val drawingNotes by dao.observeDrawingNotes(projectId).collectAsState(initial = emptyList())
+    val costSettings by dao.observeProjectCostSettings(projectId).collectAsState(initial = null)
+    val savedInteriorDesign by dao.observeInteriorDesign(projectId).collectAsState(initial = null)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -221,6 +226,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
     var editingBoqItem by remember { mutableStateOf<BoqItemEntity?>(null) }
     var showTask by remember { mutableStateOf(false) }
     var showDrawingNote by remember { mutableStateOf(false) }
+    var showCostSettings by remember { mutableStateOf(false) }
     var reportLines by remember { mutableStateOf(emptyList<String>()) }
 
     val pdfLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
@@ -235,7 +241,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
         return
     }
     val currentProject = project!!
-    val total = boqItems.sumOf { it.quantity * it.unitRate }
+    val enteredSalesTotal = boqItems.sumOf { it.quantity * it.unitRate }
     val costBreakdowns = boqItems.mapNotNull { item ->
         runCatching {
             item to CostCalculator.calculate(
@@ -245,8 +251,26 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
         }.getOrNull()
     }
     val costedBreakdowns = costBreakdowns.filter { (item, _) -> item.materialUnitRate > 0.0 || item.laborUnitRate > 0.0 }
-    val totalCost = costedBreakdowns.sumOf { it.second.totalCostOmr.toDouble() }
-    val expectedProfit = costedBreakdowns.sumOf { it.second.expectedProfitOmr.toDouble() }
+    val effectiveSettings = costSettings ?: ProjectCostSettingsEntity(projectId, updatedAt = 0L)
+    val summaryResult = runCatching { ProjectCostSummaryCalculator.summarize(
+        costBreakdowns.map { (item, breakdown) ->
+            ProjectCostLine(breakdown, item.materialUnitRate > 0.0 || item.laborUnitRate > 0.0)
+        },
+        ProjectCostAdjustments(
+            transportOmr = effectiveSettings.transportOmr,
+            additionalExpensesOmr = effectiveSettings.additionalExpensesOmr,
+            discountPercent = effectiveSettings.discountPercent,
+            discountFixedOmr = effectiveSettings.discountFixedOmr
+        )
+    ) }
+    val projectCostSummary = summaryResult.getOrElse {
+        ProjectCostSummaryCalculator.summarize(
+            costBreakdowns.map { (item, breakdown) -> ProjectCostLine(breakdown, item.materialUnitRate > 0.0 || item.laborUnitRate > 0.0) }
+        )
+    }
+    val total = if (costBreakdowns.size == boqItems.size) projectCostSummary.salesSubtotalOmr.toDouble() else enteredSalesTotal
+    val totalCost = projectCostSummary.estimatedCostOmr.toDouble()
+    val expectedProfit = if (summaryResult.isSuccess && costBreakdowns.size == boqItems.size) projectCostSummary.expectedProfitOmr?.toDouble() else null
     val completedTasks = tasks.count { it.status == "مكتمل" }
 
     Column(Modifier.fillMaxSize()) {
@@ -267,8 +291,15 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
         } else if (selectedTab == 7) {
             com.majlisengineer.design.InteriorDesignScreen(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
-                onRoomConfirmed = { room ->
-                    Toast.makeText(context, "تم اعتماد مواصفات المجلس: " + String.format(Locale.US, "%.2f", room.floorAreaM2) + " م²", Toast.LENGTH_SHORT).show()
+                savedDesign = savedInteriorDesign,
+                onSaveDesign = { room ->
+                    scope.launch {
+                        dao.saveInteriorDesign(InteriorDesignEntity(
+                            projectId, room.lengthM, room.widthM, room.heightM, room.doorWidthM, room.windowCount,
+                            room.style.name, room.seating.name, room.palette.name
+                        ))
+                    }
+                    Toast.makeText(context, "حُفظ التصميم وربط بالمشروع — مساحة الأرضية ${String.format(Locale.US, "%.2f", room.floorAreaM2)} م²", Toast.LENGTH_SHORT).show()
                 }
             )
         } else if (selectedTab == 4) {
@@ -328,9 +359,12 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                                 add("جدول الكميات")
                                 boqItems.forEach { add("${it.description}: ${it.quantity} ${it.unit} × ${formatOmr(it.unitRate)} = ${formatOmr(it.total)}") }
                                 add("إجمالي سعر البيع المتوقع: ${formatOmr(total)}")
-                                add("تكلفة المواد والعمالة للبنود المدخلة تكلفتها: ${formatOmr(totalCost)}")
-                                add("ربح البنود المدخلة تكلفتها فقط: ${formatOmr(expectedProfit)}")
-                                add("بنود لم تُدخل لها تكلفة مواد أو عمالة: ${boqItems.size - costedBreakdowns.size}")
+                                add("تكلفة المواد والعمالة والنقل والمصاريف للبنود القابلة للحساب: ${formatOmr(totalCost)}")
+                                add("صافي بيع البنود القابلة للحساب بعد الخصومات: ${formatOmr(projectCostSummary.netSalesOmr.toDouble())}")
+                                add("الربح المتوقع: ${expectedProfit?.let(::formatOmr) ?: "غير محدد — توجد تكلفة ناقصة أو بند غير صالح"}")
+                                add("الهامش المتوقع: ${if (expectedProfit == null) "غير محدد" else projectCostSummary.expectedMarginPercent?.let { formatNumber(it.toDouble()) + "%" } ?: "غير محدد"}")
+                                add("بنود بلا تكلفة مدخلة: ${projectCostSummary.uncostedLineCount}")
+                                add("بنود تعذّر حسابها: ${boqItems.size - costBreakdowns.size}")
                                 costedBreakdowns.forEach { (item, result) ->
                                     add("${item.description}: شراء ${formatNumber(result.purchaseQuantity.toDouble())} ${item.unit}، مواد ${formatOmr(result.materialCostOmr.toDouble())}، عمالة ${formatOmr(result.laborCostOmr.toDouble())}")
                                 }
@@ -364,11 +398,31 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                     }
                 }
                 2 -> {
-                    SectionHeader("جدول الكميات والتكلفة", "السعر والتكلفة والربح التقديري بالريال العماني.")
+                    SectionHeader("جدول الكميات والتكلفة", "السعر والتكلفة والخصومات والربح التقديري بالريال العماني.")
                     MetricCard("سعر البيع المتوقع", formatOmr(total), Modifier.fillMaxWidth())
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MetricCard("تكلفة المواد والعمالة", formatOmr(totalCost), Modifier.weight(1f))
-                        MetricCard(if (costedBreakdowns.isEmpty()) "الربح (أدخل التكلفة)" else "ربح البنود ذات التكلفة", formatOmr(expectedProfit), Modifier.weight(1f))
+                        MetricCard("التكلفة المقدرة شاملة", formatOmr(totalCost), Modifier.weight(1f))
+                        MetricCard("الربح المتوقع", expectedProfit?.let(::formatOmr) ?: "غير محدد", Modifier.weight(1f))
+                    }
+                    DetailCard("ملخص مالي للمشروع") {
+                        if (summaryResult.isFailure) {
+                            Text("تعذر تطبيق إعدادات الخصم الحالية على قيمة البيع الجديدة. عُرضت المجاميع دون خصم؛ راجع إعدادات المشروع.", color = MaterialTheme.colorScheme.error)
+                        }
+                        if (costBreakdowns.size != boqItems.size) {
+                            Text("توجد بنود غير صالحة للحساب؛ قيمة التكلفة لا تشملها والربح غير محدد.", color = MaterialTheme.colorScheme.error)
+                        }
+                        InfoLine("المواد", formatOmr(projectCostSummary.materialCostOmr.toDouble()))
+                        InfoLine("العمالة", formatOmr(projectCostSummary.laborCostOmr.toDouble()))
+                        InfoLine("النقل", formatOmr(projectCostSummary.transportOmr.toDouble()))
+                        InfoLine("المصاريف الإضافية", formatOmr(projectCostSummary.additionalExpensesOmr.toDouble()))
+                        InfoLine("الخصومات", formatOmr(projectCostSummary.totalDiscountOmr.toDouble()))
+                        InfoLine("صافي بيع البنود المحسوبة", formatOmr(projectCostSummary.netSalesOmr.toDouble()))
+                        InfoLine("هامش الربح", if (expectedProfit == null) "غير محدد" else projectCostSummary.expectedMarginPercent?.let { formatNumber(it.toDouble()) + "%" } ?: "غير محدد")
+                        InfoLine("بنود بلا تكلفة مدخلة", projectCostSummary.uncostedLineCount.toString())
+                        if (costBreakdowns.size != boqItems.size) InfoLine("بنود غير صالحة للحساب", (boqItems.size - costBreakdowns.size).toString())
+                        OutlinedButton(onClick = { showCostSettings = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text("إعداد النقل والمصاريف والخصومات")
+                        }
                     }
                     Button(onClick = { editingBoqItem = null; showBoq = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ إضافة بند كمية") }
                     if (boqItems.isEmpty()) EmptyCard("جدول الكميات فارغ", "أضف بندًا مع الوحدة والكمية وسعر الوحدة.")
@@ -380,7 +434,9 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                             InfoLine("الإيراد المتوقع", formatOmr(item.total))
                             if (breakdown != null) {
                                 InfoLine("الهدر / وحدة الشراء", "${formatNumber(item.wastePercent)}% / ${formatNumber(item.purchaseIncrement)} ${item.unit}")
+                                InfoLine("كمية الهدر", "${formatNumber(breakdown.wasteQuantity.toDouble())} ${item.unit}")
                                 InfoLine("كمية الشراء بعد التقريب", "${formatNumber(breakdown.purchaseQuantity.toDouble())} ${item.unit}")
+                                InfoLine("فائض تقريب الشراء", "${formatNumber(breakdown.roundingSurplus.toDouble())} ${item.unit}")
                                 if (item.materialUnitRate > 0.0 || item.laborUnitRate > 0.0) {
                                     InfoLine("تكلفة المواد", formatOmr(breakdown.materialCostOmr.toDouble()))
                                     InfoLine("تكلفة العمالة", formatOmr(breakdown.laborCostOmr.toDouble()))
@@ -430,7 +486,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                     }
                     Card(Modifier.fillMaxWidth()) {
                         Text(
-                            "تنبيه فني: هذه الشاشة تحفظ سجل الطبقات والملاحظات فقط. لا تدّعي النسخة الحالية أنها تستورد أو تعدّل ملفات DWG/DXF أو تنتج مخططات CAD تنفيذية.",
+                            "تنبيه فني: هذا السجل يحفظ الملاحظات فقط. استيراد DXF محدود متاح في تبويب الرسم الهندسي؛ لا يدعم التطبيق DWG أو التحرير الكامل ولا ينتج مخططًا تنفيذيًا معتمدًا.",
                             Modifier.padding(14.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -440,6 +496,19 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
         }
     }
 
+    if (showCostSettings) ProjectCostSettingsDialog(
+        current = effectiveSettings,
+        salesSubtotalOmr = projectCostSummary.salesSubtotalOmr.toDouble(),
+        onDismiss = { showCostSettings = false },
+        onSave = { transport, expenses, percent, fixed ->
+            scope.launch {
+                dao.saveProjectCostSettings(ProjectCostSettingsEntity(
+                    projectId, transport, expenses, percent, fixed, System.currentTimeMillis()
+                ))
+            }
+            showCostSettings = false
+        }
+    )
     if (showSurvey) AddSurveyDialog(
         projectId = projectId,
         existing = editingSurvey,
