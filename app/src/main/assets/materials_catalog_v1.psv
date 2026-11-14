@@ -1,0 +1,354 @@
+id|categoryId|nameAr|nameEn|subcategory|baseUnit|aliases
+builtin-wc-onepiece|plumbing|مرحاض قطعة واحدة|One-piece toilet|أدوات صحية|قطعة|كرسي حمام مرحاض
+builtin-wc-twopiece|plumbing|مرحاض قطعتين|Two-piece toilet|أدوات صحية|قطعة|كرسي حمام صندوق
+builtin-wc-wallhung|plumbing|مرحاض معلق جداري|Wall-hung toilet|أدوات صحية|قطعة|كرسي معلق
+builtin-wc-cistern-concealed|plumbing|صندوق طرد مخفي|Concealed cistern|أدوات صحية|قطعة|سيفون مخفي
+builtin-wc-cistern-exposed|plumbing|صندوق طرد ظاهر|Exposed cistern|أدوات صحية|قطعة|سيفون ظاهر
+builtin-wc-seat|plumbing|غطاء مرحاض|Toilet seat|أدوات صحية|قطعة|مقعد مرحاض
+builtin-basin-pedestal|plumbing|مغسلة مع قاعدة|Pedestal basin|مغاسل|قطعة|حوض مغسلة قاعدة
+builtin-basin-countertop|plumbing|حوض مغسلة فوق الرخام|Countertop basin|مغاسل|قطعة|مغسلة سطحية
+builtin-basin-wall|plumbing|مغسلة معلقة|Wall-hung basin|مغاسل|قطعة|حوض معلق
+builtin-sink-single|plumbing|حوض مطبخ مفرد|Single kitchen sink|أحواض مطابخ|قطعة|مجلى حوض ستيل
+builtin-sink-double|plumbing|حوض مطبخ مزدوج|Double kitchen sink|أحواض مطابخ|قطعة|مجلى مزدوج
+builtin-faucet-basin|plumbing|حنفية مغسلة|Basin faucet|خلاطات وحنفيات|قطعة|صنبور مغسلة
+builtin-mixer-basin|plumbing|خلاط مغسلة|Basin mixer|خلاطات وحنفيات|قطعة|خلاط حوض
+builtin-mixer-kitchen|plumbing|خلاط مطبخ|Kitchen mixer|خلاطات وحنفيات|قطعة|حنفية مطبخ
+builtin-mixer-shower|plumbing|خلاط دش|Shower mixer|خلاطات وحنفيات|قطعة|خلاط شاور
+builtin-shower-hand|plumbing|دش يدوي مع خرطوم|Hand shower set|دش وإكسسوارات|طقم|شطاف دش
+builtin-shower-rain|plumbing|رأس دش مطري|Rain shower head|دش وإكسسوارات|قطعة|رأس شاور مطري
+builtin-bidet-spray|plumbing|شطاف مرحاض|Bidet spray set|دش وإكسسوارات|طقم|شطاف يدوي
+builtin-bath-screen|plumbing|حاجز دش زجاجي|Shower glass screen|دش وإكسسوارات|قطعة|قاطع شاور
+builtin-floor-drain|plumbing|مصرف أرضي مربع|Square floor drain|مصارف وأغطية|قطعة|صفاية أرضية
+builtin-linear-drain|plumbing|مصرف أرضي خطي|Linear floor drain|مصارف وأغطية|قطعة|صفاية خطية
+builtin-basin-bottle-trap|plumbing|سيفون قارورة للمغسلة|Bottle trap|مصارف وسيفونات|قطعة|سيفون مغسلة
+builtin-basin-ptrap|plumbing|سيفون P للمغسلة|P-trap|مصارف وسيفونات|قطعة|سيفون بي
+builtin-basin-waste|plumbing|طقم تصريف وفتحة مغسلة|Basin waste set|مصارف وسيفونات|قطعة|غطاء وفتحة مغسلة
+builtin-angle-valve|plumbing|محبس زاوية|Angle valve|محابس وتوصيلات|قطعة|محبس مغسلة
+builtin-flex-hose|plumbing|خرطوم توصيل مرن|Flexible connection hose|محابس وتوصيلات|قطعة|لي مرن
+builtin-towel-bar|plumbing|حامل مناشف|Towel bar|إكسسوارات حمام|قطعة|سكة مناشف
+builtin-tissue-holder|plumbing|حامل ورق حمام|Toilet roll holder|إكسسوارات حمام|قطعة|حامل مناديل
+builtin-soap-dispenser|plumbing|موزع صابون|Soap dispenser|إكسسوارات حمام|قطعة|علبة صابون
+builtin-bathroom-shelf|plumbing|رف حمام|Bathroom shelf|إكسسوارات حمام|قطعة|رف دش
+builtin-ppr-pipe-20|water-drainage|أنبوب PPR PN20 قطر 20 مم|PPR pipe PN20 20 mm|أنابيب مياه|متر|ماسورة حرارية عشرين
+builtin-ppr-pipe-25|water-drainage|أنبوب PPR PN20 قطر 25 مم|PPR pipe PN20 25 mm|أنابيب مياه|متر|ماسورة حرارية خمسة وعشرين
+builtin-ppr-pipe-32|water-drainage|أنبوب PPR PN20 قطر 32 مم|PPR pipe PN20 32 mm|أنابيب مياه|متر|ماسورة حرارية اثنين وثلاثين
+builtin-ppr-pipe-40|water-drainage|أنبوب PPR PN20 قطر 40 مم|PPR pipe PN20 40 mm|أنابيب مياه|متر|ماسورة حرارية أربعين
+builtin-ppr-pipe-50|water-drainage|أنبوب PPR PN20 قطر 50 مم|PPR pipe PN20 50 mm|أنابيب مياه|متر|ماسورة حرارية خمسين
+builtin-ppr-pipe-63|water-drainage|أنبوب PPR PN20 قطر 63 مم|PPR pipe PN20 63 mm|أنابيب مياه|متر|ماسورة حرارية ثلاثة وستين
+builtin-ppr-pipe-75|water-drainage|أنبوب PPR PN20 قطر 75 مم|PPR pipe PN20 75 mm|أنابيب مياه|متر|ماسورة حرارية خمسة وسبعين
+builtin-ppr-pipe-90|water-drainage|أنبوب PPR PN20 قطر 90 مم|PPR pipe PN20 90 mm|أنابيب مياه|متر|ماسورة حرارية تسعين
+builtin-ppr-pipe-110|water-drainage|أنبوب PPR PN20 قطر 110 مم|PPR pipe PN20 110 mm|أنابيب مياه|متر|ماسورة حرارية مئة وعشرة
+builtin-ppr-elbow-20|water-drainage|كوع PPR 90 درجة قطر 20 مم|PPR 90-degree elbow 20 mm|وصلات PPR|قطعة|كوع حراري عشرين
+builtin-ppr-elbow-25|water-drainage|كوع PPR 90 درجة قطر 25 مم|PPR 90-degree elbow 25 mm|وصلات PPR|قطعة|كوع حراري خمسة وعشرين
+builtin-ppr-elbow-32|water-drainage|كوع PPR 90 درجة قطر 32 مم|PPR 90-degree elbow 32 mm|وصلات PPR|قطعة|كوع حراري اثنين وثلاثين
+builtin-ppr-elbow-45|water-drainage|كوع PPR 45 درجة|PPR 45-degree elbow|وصلات PPR|قطعة|كوع خمسة واربعين
+builtin-ppr-tee-20|water-drainage|وصلة T PPR قطر 20 مم|PPR tee 20 mm|وصلات PPR|قطعة|تي حراري عشرين
+builtin-ppr-tee-25|water-drainage|وصلة T PPR قطر 25 مم|PPR tee 25 mm|وصلات PPR|قطعة|تي حراري خمسة وعشرين
+builtin-ppr-reducer|water-drainage|مخفض PPR متدرج|PPR reducer|وصلات PPR|قطعة|مخفض حراري
+builtin-ppr-socket|water-drainage|جلبة مستقيمة PPR|PPR straight socket|وصلات PPR|قطعة|سوكيت حراري
+builtin-ppr-union|water-drainage|وصلة فك وتركيب PPR|PPR union|وصلات PPR|قطعة|يونين حراري
+builtin-ppr-adapter-female|water-drainage|وصلة PPR بقلاوظ داخلي|PPR female threaded adapter|وصلات PPR|قطعة|وصلة أنثى حرارية
+builtin-ppr-adapter-male|water-drainage|وصلة PPR بقلاوظ خارجي|PPR male threaded adapter|وصلات PPR|قطعة|وصلة ذكر حرارية
+builtin-ppr-valve|water-drainage|محبس PPR|PPR stop valve|محابس مياه|قطعة|محبس حراري
+builtin-ball-valve-brass|water-drainage|محبس كروي نحاس|Brass ball valve|محابس مياه|قطعة|محبس نحاسي
+builtin-check-valve|water-drainage|صمام عدم رجوع|Check valve|محابس مياه|قطعة|تشيك فالف
+builtin-gate-valve|water-drainage|محبس بوابة|Gate valve|محابس مياه|قطعة|محبس بوابة
+builtin-pressure-reducing-valve|water-drainage|منظم ضغط المياه|Pressure reducing valve|محابس مياه|قطعة|منظم ضغط
+builtin-float-valve|water-drainage|عوامة خزان|Tank float valve|محابس مياه|قطعة|عوامة
+builtin-water-tank-500|water-drainage|خزان مياه 500 لتر|Water tank 500 L|خزانات|قطعة|خزان خمسمئة لتر
+builtin-water-tank-1000|water-drainage|خزان مياه 1000 لتر|Water tank 1000 L|خزانات|قطعة|خزان ألف لتر
+builtin-water-tank-2000|water-drainage|خزان مياه 2000 لتر|Water tank 2000 L|خزانات|قطعة|خزان ألفين لتر
+builtin-water-pump-half-hp|water-drainage|مضخة مياه نصف حصان|Water pump 0.5 HP|مضخات|قطعة|موتور ماء نصف حصان
+builtin-water-pump-1hp|water-drainage|مضخة مياه 1 حصان|Water pump 1 HP|مضخات|قطعة|موتور ماء حصان
+builtin-water-pump-2hp|water-drainage|مضخة مياه 2 حصان|Water pump 2 HP|مضخات|قطعة|موتور ماء حصانين
+builtin-water-filter|water-drainage|فلتر مياه مركزي|Central water filter|فلاتر ومعالجة|قطعة|فلتر رئيسي
+builtin-water-filter-cartridge|water-drainage|شمعة فلتر مياه|Water filter cartridge|فلاتر ومعالجة|قطعة|شمعة تنقية
+builtin-water-meter|water-drainage|عداد مياه|Water meter|قياس وتحكم|قطعة|عداد استهلاك الماء
+builtin-water-hammer-arrestor|water-drainage|مانع الطرق المائي|Water hammer arrestor|قياس وتحكم|قطعة|مانع المطرقة المائية
+builtin-pvc-drain-pipe-50|water-drainage|أنبوب صرف PVC قطر 50 مم|PVC drainage pipe 50 mm|أنابيب صرف|متر|ماسورة صرف خمسين
+builtin-pvc-drain-pipe-75|water-drainage|أنبوب صرف PVC قطر 75 مم|PVC drainage pipe 75 mm|أنابيب صرف|متر|ماسورة صرف خمسة وسبعين
+builtin-pvc-drain-pipe-110|water-drainage|أنبوب صرف PVC قطر 110 مم|PVC drainage pipe 110 mm|أنابيب صرف|متر|ماسورة صرف مئة وعشرة
+builtin-pvc-drain-pipe-160|water-drainage|أنبوب صرف PVC قطر 160 مم|PVC drainage pipe 160 mm|أنابيب صرف|متر|ماسورة صرف مئة وستين
+builtin-pvc-elbow-45|water-drainage|كوع صرف PVC 45 درجة|PVC drainage elbow 45 degree|وصلات صرف|قطعة|كوع صرف خمسة واربعين
+builtin-pvc-elbow-90|water-drainage|كوع صرف PVC 90 درجة|PVC drainage elbow 90 degree|وصلات صرف|قطعة|كوع صرف تسعين
+builtin-pvc-tee|water-drainage|وصلة T صرف PVC|PVC drainage tee|وصلات صرف|قطعة|تي صرف
+builtin-pvc-y-branch|water-drainage|وصلة Y صرف PVC|PVC drainage Y branch|وصلات صرف|قطعة|وصلة واي صرف
+builtin-pvc-reducer|water-drainage|مخفض صرف PVC|PVC drainage reducer|وصلات صرف|قطعة|مخفض صرف
+builtin-pvc-cleanout|water-drainage|فتحة تسليك صرف|PVC cleanout fitting|وصلات صرف|قطعة|غطاء تسليك
+builtin-pvc-coupling|water-drainage|جلبة ربط صرف PVC|PVC drainage coupling|وصلات صرف|قطعة|وصلة مستقيمة صرف
+builtin-drain-trap|water-drainage|سيفون أرضي للصرف|Floor drain trap|مصارف صرف|قطعة|سيفون أرضية
+builtin-inspection-chamber|water-drainage|غرفة تفتيش صرف مسبقة الصنع|Inspection chamber|مصارف صرف|قطعة|غرفة تفتيش
+builtin-floor-drain-cover|water-drainage|غطاء مصرف أرضي ستانلس|Stainless floor drain cover|مصارف صرف|قطعة|غطاء صفاية
+builtin-copper-water-pipe|water-drainage|أنبوب نحاس للمياه|Copper water pipe|أنابيب مياه|متر|ماسورة نحاس
+builtin-flexible-drain-hose|water-drainage|خرطوم صرف مرن|Flexible drainage hose|أنابيب صرف|قطعة|لي تصريف مرن
+builtin-single-cable-1-5|electrical|سلك نحاس مفرد 1.5 مم²|Single-core copper wire 1.5 mm2|أسلاك وكابلات|متر|كيبل 1.5 ملي
+builtin-single-cable-2-5|electrical|سلك نحاس مفرد 2.5 مم²|Single-core copper wire 2.5 mm2|أسلاك وكابلات|متر|كيبل 2.5 ملي
+builtin-single-cable-4|electrical|سلك نحاس مفرد 4 مم²|Single-core copper wire 4 mm2|أسلاك وكابلات|متر|كيبل 4 ملي
+builtin-single-cable-6|electrical|سلك نحاس مفرد 6 مم²|Single-core copper wire 6 mm2|أسلاك وكابلات|متر|كيبل 6 ملي
+builtin-single-cable-10|electrical|سلك نحاس مفرد 10 مم²|Single-core copper wire 10 mm2|أسلاك وكابلات|متر|كيبل 10 ملي
+builtin-single-cable-16|electrical|سلك نحاس مفرد 16 مم²|Single-core copper wire 16 mm2|أسلاك وكابلات|متر|كيبل 16 ملي
+builtin-single-cable-25|electrical|سلك نحاس مفرد 25 مم²|Single-core copper wire 25 mm2|أسلاك وكابلات|متر|كيبل 25 ملي
+builtin-flex-cable-3c-2-5|electrical|كابل مرن 3 نواة 2.5 مم²|Flexible cable 3-core 2.5 mm2|أسلاك وكابلات|متر|كيبل مرن
+builtin-armoured-cable|electrical|كابل مدرع نحاس|Armoured copper cable|أسلاك وكابلات|متر|كيبل مدرع
+builtin-earth-cable|electrical|سلك تأريض نحاس|Copper earth wire|أسلاك وكابلات|متر|سلك أرضي
+builtin-cat6-cable|electrical|كابل بيانات CAT6|CAT6 data cable|اتصالات وبيانات|متر|كيبل شبكة
+builtin-coax-cable|electrical|كابل تلفزيون محوري|Coaxial TV cable|اتصالات وبيانات|متر|كيبل دش
+builtin-conduit-16|electrical|ماسورة كهرباء PVC قطر 16 مم|PVC electrical conduit 16 mm|مواسير وتمديدات|متر|كوندويت 16
+builtin-conduit-20|electrical|ماسورة كهرباء PVC قطر 20 مم|PVC electrical conduit 20 mm|مواسير وتمديدات|متر|كوندويت 20
+builtin-conduit-25|electrical|ماسورة كهرباء PVC قطر 25 مم|PVC electrical conduit 25 mm|مواسير وتمديدات|متر|كوندويت 25
+builtin-conduit-32|electrical|ماسورة كهرباء PVC قطر 32 مم|PVC electrical conduit 32 mm|مواسير وتمديدات|متر|كوندويت 32
+builtin-conduit-40|electrical|ماسورة كهرباء PVC قطر 40 مم|PVC electrical conduit 40 mm|مواسير وتمديدات|متر|كوندويت 40
+builtin-flex-conduit|electrical|ماسورة كهرباء مرنة|Flexible electrical conduit|مواسير وتمديدات|متر|خرطوم كهرباء مرن
+builtin-conduit-elbow|electrical|كوع ماسورة كهرباء|Electrical conduit elbow|مواسير وتمديدات|قطعة|كوع كوندويت
+builtin-conduit-coupler|electrical|وصلة ربط ماسورة كهرباء|Electrical conduit coupler|مواسير وتمديدات|قطعة|جلبة كوندويت
+builtin-junction-box|electrical|علبة توصيل كهرباء|Electrical junction box|علب وتوزيع|قطعة|علبة تجميع
+builtin-switch-box|electrical|علبة مفتاح كهرباء|Electrical switch box|علب وتوزيع|قطعة|علبة مفاتيح
+builtin-db-8way|electrical|لوحة توزيع 8 مخارج|Distribution board 8-way|قواطع ولوحات|قطعة|لوحة قواطع 8
+builtin-db-12way|electrical|لوحة توزيع 12 مخرجًا|Distribution board 12-way|قواطع ولوحات|قطعة|لوحة قواطع 12
+builtin-db-18way|electrical|لوحة توزيع 18 مخرجًا|Distribution board 18-way|قواطع ولوحات|قطعة|لوحة قواطع 18
+builtin-db-24way|electrical|لوحة توزيع 24 مخرجًا|Distribution board 24-way|قواطع ولوحات|قطعة|لوحة قواطع 24
+builtin-mcb-6a|electrical|قاطع مصغر 6 أمبير|MCB 6 A|قواطع ولوحات|قطعة|قاطع ستة أمبير
+builtin-mcb-10a|electrical|قاطع مصغر 10 أمبير|MCB 10 A|قواطع ولوحات|قطعة|قاطع عشرة أمبير
+builtin-mcb-16a|electrical|قاطع مصغر 16 أمبير|MCB 16 A|قواطع ولوحات|قطعة|قاطع ستة عشر أمبير
+builtin-mcb-20a|electrical|قاطع مصغر 20 أمبير|MCB 20 A|قواطع ولوحات|قطعة|قاطع عشرين أمبير
+builtin-mcb-32a|electrical|قاطع مصغر 32 أمبير|MCB 32 A|قواطع ولوحات|قطعة|قاطع 32 امبير
+builtin-mcb-40a|electrical|قاطع مصغر 40 أمبير|MCB 40 A|قواطع ولوحات|قطعة|قاطع أربعين أمبير
+builtin-rccb|electrical|قاطع تسرب أرضي RCCB|RCCB residual-current breaker|قواطع ولوحات|قطعة|قاطع حماية تسرب
+builtin-rcbo|electrical|قاطع حماية RCBO|RCBO breaker|قواطع ولوحات|قطعة|قاطع تسرب وقصر
+builtin-spd|electrical|مانع زيادة الجهد SPD|Surge protection device|قواطع ولوحات|قطعة|حماية صواعق
+builtin-isolator|electrical|قاطع فصل رئيسي|Main isolator switch|قواطع ولوحات|قطعة|عازل رئيسي
+builtin-switch-1gang|electrical|مفتاح إنارة مفرد|One-gang light switch|مفاتيح وأفياش|قطعة|مفتاح مفرد
+builtin-switch-2gang|electrical|مفتاح إنارة مزدوج|Two-gang light switch|مفاتيح وأفياش|قطعة|مفتاح مزدوج
+builtin-switch-3gang|electrical|مفتاح إنارة ثلاثي|Three-gang light switch|مفاتيح وأفياش|قطعة|مفتاح ثلاثي
+builtin-socket-13a|electrical|مقبس كهرباء 13 أمبير|13 A power socket|مفاتيح وأفياش|قطعة|فيش 13 أمبير
+builtin-socket-universal|electrical|مقبس كهرباء عالمي|Universal power socket|مفاتيح وأفياش|قطعة|فيش عالمي
+builtin-socket-usb|electrical|مقبس كهرباء مع USB|Power socket with USB|مفاتيح وأفياش|قطعة|فيش يو اس بي
+builtin-cooker-outlet|electrical|مخرج كهرباء للفرن|Cooker control outlet|مفاتيح وأفياش|قطعة|مخرج فرن
+builtin-dimmer|electrical|مفتاح تعتيم إنارة|Light dimmer switch|مفاتيح وأفياش|قطعة|ديمر
+builtin-led-downlight-7w|electrical|كشاف LED غاطس 7 واط|LED downlight 7 W|إنارة|قطعة|سبوت لايت 7 واط
+builtin-led-downlight-12w|electrical|كشاف LED غاطس 12 واط|LED downlight 12 W|إنارة|قطعة|سبوت لايت 12 واط
+builtin-led-downlight-18w|electrical|كشاف LED غاطس 18 واط|LED downlight 18 W|إنارة|قطعة|سبوت لايت 18 واط
+builtin-led-panel-24w|electrical|لوحة إنارة LED 24 واط|LED panel 24 W|إنارة|قطعة|بانل ليد 24
+builtin-led-panel-36w|electrical|لوحة إنارة LED 36 واط|LED panel 36 W|إنارة|قطعة|بانل ليد 36
+builtin-led-strip|electrical|شريط إنارة LED|LED strip light|إنارة|متر|ليد مخفي
+builtin-led-driver|electrical|مشغل إنارة LED|LED driver|إنارة|قطعة|محول ليد
+builtin-track-light|electrical|كشاف سكة إنارة|Track light|إنارة|قطعة|سبوت سكة
+builtin-ceiling-fan|electrical|مروحة سقف|Ceiling fan|مراوح|قطعة|مروحة
+builtin-exhaust-fan|electrical|مروحة شفط|Exhaust fan|مراوح|قطعة|شفاط
+builtin-motion-sensor|electrical|حساس حركة للإنارة|Motion sensor|تحكم وحماية|قطعة|حساس حركة
+builtin-smoke-detector|electrical|كاشف دخان|Smoke detector|تحكم وحماية|قطعة|حساس دخان
+builtin-door-bell|electrical|جرس باب كهربائي|Electric doorbell|تحكم وحماية|قطعة|جرس
+builtin-porcelain-600|ceramic|بلاط بورسلان 60×60 سم|Porcelain tile 600×600 mm|بلاط أرضيات|م²|بورسلان 60 في 60
+builtin-porcelain-1200|ceramic|بلاط بورسلان 60×120 سم|Porcelain tile 600×1200 mm|بلاط أرضيات|م²|بورسلان 60 في 120
+builtin-porcelain-800|ceramic|بلاط بورسلان 80×80 سم|Porcelain tile 800×800 mm|بلاط أرضيات|م²|بورسلان 80 في 80
+builtin-porcelain-1200-square|ceramic|بلاط بورسلان 120×120 سم|Porcelain tile 1200×1200 mm|بلاط أرضيات|م²|بورسلان كبير
+builtin-ceramic-floor|ceramic|بلاط سيراميك أرضيات|Ceramic floor tile|بلاط أرضيات|م²|سيراميك أرضي
+builtin-ceramic-wall|ceramic|بلاط سيراميك جدران|Ceramic wall tile|بلاط جدران|م²|سيراميك حائط
+builtin-mosaic-tile|ceramic|بلاط موزاييك|Mosaic tile|بلاط ديكوري|م²|فسيفساء
+builtin-outdoor-tile|ceramic|بلاط خارجي خشن مانع انزلاق|Outdoor anti-slip tile|بلاط خارجي|م²|بلاط حوش خشن
+builtin-pool-tile|ceramic|بلاط مسابح|Swimming pool tile|بلاط ديكوري|م²|سيراميك مسبح
+builtin-ceramic-skirting|ceramic|وزرة سيراميك|Ceramic skirting|إكسسوارات بلاط|متر|وزرة بلاط
+builtin-stair-nosing-tile|ceramic|بلاط حافة درج|Tile stair nosing|إكسسوارات بلاط|متر|حافة درج
+builtin-tile-adhesive-c1|ceramic|لاصق بلاط C1|Tile adhesive C1|مواد تركيب البلاط|كيس|غراء بلاط عادي
+builtin-tile-adhesive-c2|ceramic|لاصق بلاط مرن C2|Flexible tile adhesive C2|مواد تركيب البلاط|كيس|غراء بلاط مرن
+builtin-epoxy-grout|ceramic|جراوت إيبوكسي|Epoxy grout|مواد تركيب البلاط|كجم|روبة ايبوكسي
+builtin-cement-grout|ceramic|جراوت إسمنتي|Cementitious grout|مواد تركيب البلاط|كيس|روبة اسمنتية
+builtin-tile-spacer|ceramic|فواصل بلاط بلاستيكية|Tile spacers|مواد تركيب البلاط|علبة|صليبات بلاط
+builtin-tile-leveler|ceramic|نظام تسوية البلاط|Tile leveling system|مواد تركيب البلاط|علبة|كلبسات تسوية
+builtin-tile-trim|ceramic|حلية حافة بلاط|Tile edge trim|إكسسوارات بلاط|متر|زاوية بلاط
+builtin-tile-sealer|ceramic|مادة حماية وفواصل البلاط|Tile sealer|مواد تركيب البلاط|لتر|عازل فواصل
+builtin-marble-local|stone|رخام محلي للأرضيات|Local marble flooring|رخام|م²|رخام عماني
+builtin-marble-imported|stone|رخام مستورد للأرضيات|Imported marble flooring|رخام|م²|رخام أرضيات
+builtin-marble-wall|stone|رخام كسوة جدران|Marble wall cladding|رخام|م²|رخام جدار
+builtin-granite-floor|stone|جرانيت أرضيات|Granite flooring|جرانيت|م²|جرانيت أرضي
+builtin-granite-counter|stone|سطح جرانيت للمغاسل والمطابخ|Granite countertop|جرانيت|متر|رخام مطبخ جرانيت
+builtin-engineered-quartz|stone|كوارتز صناعي للأسطح|Engineered quartz slab|أحجار صناعية|م²|كوارتز
+builtin-terrazzo|stone|بلاط تيرازو|Terrazzo tile|أحجار صناعية|م²|تيرازو
+builtin-stone-skirting|stone|وزرة رخام أو جرانيت|Stone skirting|إكسسوارات حجر|متر|وزرة رخام
+builtin-stone-stair|stone|درج رخام أو جرانيت|Stone stair tread|إكسسوارات حجر|متر|درج رخام
+builtin-stone-vanity|stone|سطح مغسلة رخام|Stone vanity top|إكسسوارات حجر|قطعة|رخامة مغسلة
+builtin-stone-adhesive|stone|لاصق رخام وحجر|Stone adhesive|مواد تركيب الحجر|كيس|غراء رخام
+builtin-stone-sealer|stone|مادة حماية الرخام والحجر|Stone sealer|مواد تركيب الحجر|لتر|عازل رخام
+builtin-stone-polish|stone|مادة تلميع رخام|Stone polish|مواد تركيب الحجر|لتر|ملمع رخام
+builtin-gypsum-board-standard|gypsum|لوح جبس عادي 12.5 مم|Standard gypsum board 12.5 mm|ألواح جبس|لوح|جبس بورد عادي
+builtin-gypsum-board-moisture|gypsum|لوح جبس مقاوم للرطوبة|Moisture-resistant gypsum board|ألواح جبس|لوح|جبس بورد أخضر
+builtin-gypsum-board-fire|gypsum|لوح جبس مقاوم للحريق|Fire-resistant gypsum board|ألواح جبس|لوح|جبس بورد أحمر
+builtin-gypsum-board-acoustic|gypsum|لوح جبس مثقب صوتي|Perforated acoustic gypsum board|ألواح جبس|لوح|جبس صوتي
+builtin-gypsum-stud|gypsum|قائم معدني لجدار جبس|Gypsum metal stud|هياكل جبس|متر|ستد جبس
+builtin-gypsum-track|gypsum|مسار معدني لجدار جبس|Gypsum metal track|هياكل جبس|متر|تراك جبس
+builtin-ceiling-furring|gypsum|قناة سقف معدنية|Ceiling furring channel|هياكل جبس|متر|قناة سقف
+builtin-ceiling-main-channel|gypsum|قناة رئيسية للسقف المستعار|Main ceiling channel|هياكل جبس|متر|القناة الرئيسية
+builtin-ceiling-hanger|gypsum|علاقة تعليق للسقف|Ceiling hanger|هياكل جبس|قطعة|تعليقة سقف
+builtin-ceiling-angle|gypsum|زاوية محيطية للسقف|Perimeter ceiling angle|هياكل جبس|متر|زاوية سقف
+builtin-gypsum-screw|gypsum|براغي تثبيت ألواح الجبس|Gypsum board screws|تثبيت وتشطيب|علبة|براغي جبس
+builtin-joint-tape|gypsum|شريط فواصل ألواح الجبس|Gypsum joint tape|تثبيت وتشطيب|لفة|تيب فواصل جبس
+builtin-joint-compound|gypsum|معجون فواصل الجبس|Gypsum joint compound|تثبيت وتشطيب|كيس|معجون جبس
+builtin-access-panel|gypsum|فتحة صيانة للسقف|Ceiling access panel|إكسسوارات سقف|قطعة|باب صيانة
+builtin-gypsum-cornice|gypsum|كرانيش جبس|Gypsum cornice|ديكورات جبس|متر|كورنيش جبس
+builtin-decorative-gypsum|gypsum|زخرفة جبسية|Decorative gypsum moulding|ديكورات جبس|قطعة|زخرفة جبس
+builtin-mineral-ceiling-tile|gypsum|بلاطة سقف معدني أو معدني ليفي|Mineral ceiling tile|أسقف مستعارة|م²|بلاطات سقف
+builtin-tbar-grid|gypsum|شبكة T للسقف المستعار|T-bar ceiling grid|أسقف مستعارة|متر|شبكة سقف
+builtin-ceiling-insulation|gypsum|عازل صوتي للسقف|Ceiling acoustic insulation|عزل أسقف|م²|صوف صوتي سقف
+builtin-paint-interior-primer|paint|أساس دهان داخلي|Interior paint primer|دهانات|لتر|برايمر داخلي
+builtin-paint-exterior-primer|paint|أساس دهان خارجي|Exterior paint primer|دهانات|لتر|برايمر خارجي
+builtin-wall-putty|paint|معجون جدران داخلي|Interior wall putty|معاجين|كيس|معجون حائط
+builtin-exterior-putty|paint|معجون خارجي مقاوم للعوامل الجوية|Exterior wall putty|معاجين|كيس|معجون واجهات
+builtin-emulsion-paint|paint|دهان بلاستيك داخلي|Interior emulsion paint|دهانات|لتر|صبغ داخلي
+builtin-exterior-paint|paint|دهان واجهات خارجي|Exterior wall paint|دهانات|لتر|صبغ خارجي
+builtin-texture-paint|paint|دهان ديكوري محبب|Textured decorative paint|دهانات ديكورية|كجم|دهان تكستشر
+builtin-enamel-paint|paint|دهان مينا للأبواب والمعادن|Enamel paint|دهانات|لتر|صبغ زيتي
+builtin-epoxy-paint|paint|دهان أرضيات إيبوكسي|Epoxy floor coating|دهانات|كجم|دهان ايبوكسي
+builtin-ceiling-paint|paint|دهان أسقف|Ceiling paint|دهانات|لتر|صبغ سقف
+builtin-wood-stain|paint|صبغة حماية خشب|Wood stain|دهانات خشب|لتر|صبغ خشب
+builtin-wood-varnish|paint|ورنيش شفاف للخشب|Clear wood varnish|دهانات خشب|لتر|لكر
+builtin-metal-primer|paint|أساس مضاد للصدأ للمعادن|Anti-rust metal primer|دهانات معادن|لتر|برايمر حديد
+builtin-thinner|paint|مخفف دهان|Paint thinner|مذيبات|لتر|تنر
+builtin-silicone-paintable|paint|مانع تسرب قابل للدهان|Paintable sealant|مانعات تسرب|عبوة|سيلانت
+builtin-acrylic-caulk|paint|معجون أكريليك للشقوق|Acrylic crack filler|معاجين|عبوة|اكريليك شقوق
+builtin-sandpaper|paint|ورق صنفرة|Sandpaper|أدوات دهان|ورقة|صنفرة
+builtin-paint-brush|paint|فرشاة دهان|Paint brush|أدوات دهان|قطعة|فرشاة صبغ
+builtin-paint-roller|paint|رول دهان|Paint roller|أدوات دهان|قطعة|رولة صبغ
+builtin-masking-tape|paint|شريط حماية للدهان|Painter masking tape|أدوات دهان|لفة|تيب صبغ
+builtin-wood-door-flush|doors-windows|باب خشبي مصمت|Solid flush timber door|أبواب|قطعة|باب خشب
+builtin-wood-door-hdf|doors-windows|باب HDF داخلي|HDF interior door|أبواب|قطعة|باب داخلي
+builtin-wood-door-veneer|doors-windows|باب خشب بقشرة طبيعية|Timber veneer door|أبواب|قطعة|باب قشرة
+builtin-steel-security-door|doors-windows|باب أمان معدني|Steel security door|أبواب|قطعة|باب حديد
+builtin-aluminium-sliding-window|doors-windows|نافذة ألمنيوم سحاب|Aluminium sliding window|نوافذ|م²|شباك سحاب
+builtin-aluminium-casement-window|doors-windows|نافذة ألمنيوم مفصلية|Aluminium casement window|نوافذ|م²|شباك مفصلي
+builtin-upvc-window|doors-windows|نافذة UPVC|UPVC window|نوافذ|م²|شباك يو بي في سي
+builtin-window-mosquito-screen|doors-windows|شبك ناموس للنوافذ|Window mosquito screen|نوافذ|م²|شبك حشرات
+builtin-tempered-glass-6|doors-windows|زجاج مقسى 6 مم|Tempered glass 6 mm|زجاج|م²|زجاج سيكوريت 6
+builtin-tempered-glass-8|doors-windows|زجاج مقسى 8 مم|Tempered glass 8 mm|زجاج|م²|زجاج سيكوريت 8
+builtin-tempered-glass-10|doors-windows|زجاج مقسى 10 مم|Tempered glass 10 mm|زجاج|م²|زجاج سيكوريت 10
+builtin-laminated-glass|doors-windows|زجاج مصفح|Laminated glass|زجاج|م²|زجاج لامينيت
+builtin-double-glazing|doors-windows|زجاج مزدوج عازل|Double-glazed insulated glass|زجاج|م²|دبل جلاس
+builtin-mirror|doors-windows|مرآة زجاجية|Glass mirror|زجاج|م²|مراية
+builtin-door-hinges|doors-windows|مفصلات أبواب|Door hinges|إكسسوارات أبواب|زوج|مفصلات
+builtin-door-lock|doors-windows|قفل باب|Door lock|إكسسوارات أبواب|قطعة|كالون باب
+builtin-door-handle|doors-windows|مقبض باب|Door handle|إكسسوارات أبواب|طقم|يد باب
+builtin-door-closer|doors-windows|غالق باب هيدروليكي|Hydraulic door closer|إكسسوارات أبواب|قطعة|كلوزر باب
+builtin-weather-strip|doors-windows|حشية عزل للأبواب والنوافذ|Door and window weather strip|إكسسوارات أبواب|متر|جلدة عزل
+builtin-window-hardware|doors-windows|إكسسوارات تشغيل نافذة|Window operating hardware|إكسسوارات نوافذ|طقم|إكسسوار شباك
+builtin-glass-silicone|doors-windows|سيليكون تثبيت الزجاج|Glazing silicone sealant|إكسسوارات زجاج|عبوة|سيليكون زجاج
+builtin-aluminium-hollow-section|metal-shades|مقطع ألمنيوم مجوف|Aluminium hollow section|ألمنيوم|متر|تيوب ألمنيوم
+builtin-aluminium-channel|metal-shades|قناة ألمنيوم|Aluminium channel|ألمنيوم|متر|سي قناة ألمنيوم
+builtin-aluminium-angle|metal-shades|زاوية ألمنيوم|Aluminium angle|ألمنيوم|متر|زاوية المنيوم
+builtin-steel-box-section|metal-shades|مقطع حديد مجوف مستطيل|Steel rectangular hollow section|حديد ومظلات|متر|تيوب حديد
+builtin-steel-pipe|metal-shades|أنبوب حديد دائري|Steel circular pipe|حديد ومظلات|متر|ماسورة حديد
+builtin-galvanized-sheet|metal-shades|صاج مجلفن مموج|Corrugated galvanized sheet|تغطيات|م²|شينكو مجلفن
+builtin-aluminium-roof-sheet|metal-shades|لوح تغطية ألمنيوم|Aluminium roofing sheet|تغطيات|م²|سقف ألمنيوم
+builtin-sandwich-panel|metal-shades|لوح ساندوتش بانل معزول|Insulated sandwich panel|تغطيات|م²|ساندوتش بانل
+builtin-shade-net-80|metal-shades|شبك تظليل 80 بالمئة|Shade net 80 percent|مظلات|م²|شبك ظل
+builtin-shade-net-90|metal-shades|شبك تظليل 90 بالمئة|Shade net 90 percent|مظلات|م²|شبك ظل كثيف
+builtin-pvc-shade-fabric|metal-shades|قماش مظلة PVC|PVC shade fabric|مظلات|م²|قماش بي في سي
+builtin-membrane-shade|metal-shades|قماش مظلة مشدود|Tensile shade membrane|مظلات|م²|قماش شد
+builtin-gutter|metal-shades|مزراب تصريف أمطار معدني|Metal rain gutter|تصريف أمطار|متر|مزاريب
+builtin-metal-fasteners|metal-shades|مسامير وبراغي تثبيت معدنية|Metal fastening screws and bolts|تثبيت معدني|كجم|براغي حديد
+builtin-shade-bracket|metal-shades|قاعدة تثبيت مظلة|Shade structure bracket|تثبيت معدني|قطعة|قاعدة مظلة
+builtin-zinc-primer|metal-shades|أساس غني بالزنك للحديد|Zinc-rich steel primer|حماية معادن|لتر|برايمر زنك
+builtin-powder-coating|metal-shades|طلاء بودرة حراري للألمنيوم|Aluminium powder coating|حماية معادن|م²|بودرة حرارية
+builtin-metal-welding-electrode|metal-shades|أقطاب لحام معدنية|Metal welding electrodes|تثبيت معدني|كجم|الكترود لحام
+builtin-split-ac-1ton|hvac|مكيف سبليت 1 طن|Split AC 1 ton|أجهزة تكييف|قطعة|مكيف واحد طن
+builtin-split-ac-1-5ton|hvac|مكيف سبليت 1.5 طن|Split AC 1.5 ton|أجهزة تكييف|قطعة|مكيف طن ونصف
+builtin-split-ac-2ton|hvac|مكيف سبليت 2 طن|Split AC 2 ton|أجهزة تكييف|قطعة|مكيف طنّين
+builtin-split-ac-2-5ton|hvac|مكيف سبليت 2.5 طن|Split AC 2.5 ton|أجهزة تكييف|قطعة|مكيف طن ونصفين
+builtin-split-ac-3ton|hvac|مكيف سبليت 3 طن|Split AC 3 ton|أجهزة تكييف|قطعة|مكيف ثلاثة طن
+builtin-ducted-ac|hvac|وحدة تكييف مخفية دكت|Concealed ducted AC unit|أجهزة تكييف|قطعة|مكيف مخفي
+builtin-copper-pipe-pair|hvac|زوج أنابيب نحاس للتكييف|AC copper pipe pair|أنابيب تكييف|متر|مواسير نحاس مكيف
+builtin-copper-fitting|hvac|وصلات نحاس للتكييف|AC copper fittings|أنابيب تكييف|قطعة|كوع نحاس تكييف
+builtin-copper-insulation|hvac|عازل أنابيب نحاس للتكييف|Copper pipe insulation|عزل تكييف|متر|عازل مواسير مكيف
+builtin-ac-drain-pipe|hvac|أنبوب تصريف تكاثف المكيف|AC condensate drain pipe|تصريف تكييف|متر|لي تصريف مكيف
+builtin-ac-drain-pump|hvac|مضخة تكاثف للمكيف|AC condensate pump|تصريف تكييف|قطعة|مضخة صرف مكيف
+builtin-duct-sheet|hvac|صاج مجاري هواء|HVAC duct sheet metal|مجاري هواء|م²|دكت صاج
+builtin-flexible-duct|hvac|مجرى هواء مرن|Flexible air duct|مجاري هواء|متر|دكت مرن
+builtin-duct-insulation|hvac|عازل حراري لمجاري الهواء|HVAC duct insulation|عزل تكييف|م²|عازل دكت
+builtin-air-diffuser|hvac|ناشر هواء سقفي|Ceiling air diffuser|مخارج هواء|قطعة|دفيوزر
+builtin-air-grille|hvac|شبكة تهوية هواء|Air grille|مخارج هواء|قطعة|جريل
+builtin-volume-damper|hvac|بوابة تنظيم تدفق الهواء|Volume control damper|مجاري هواء|قطعة|دامبر
+builtin-ac-thermostat|hvac|منظم حرارة للمكيف|AC thermostat|تحكم تكييف|قطعة|ثرموستات
+builtin-ac-filter|hvac|فلتر هواء للمكيف|AC air filter|تحكم تكييف|قطعة|فلتر مكيف
+builtin-ventilation-fan|hvac|مروحة تهوية|Ventilation fan|تهوية|قطعة|مروحة تهوية
+builtin-refrigerant|hvac|غاز تبريد للمكيف|AC refrigerant gas|مواد تكييف|كجم|فريون
+builtin-ac-bracket|hvac|حامل وحدة تكييف|AC outdoor unit bracket|تثبيت تكييف|طقم|قاعدة مكيف
+builtin-duct-sealant|hvac|مانع تسرب لمجاري الهواء|HVAC duct sealant|مواد تكييف|عبوة|سيلانت دكت
+builtin-ac-control-cable|hvac|كابل تحكم بين وحدات المكيف|AC interconnecting control cable|أسلاك تكييف|متر|كيبل مكيف
+builtin-bitumen-membrane-3mm|insulation|لفائف عزل بيتومين 3 مم|Bitumen waterproofing membrane 3 mm|عزل مائي|لفة|رول عزل
+builtin-bitumen-membrane-4mm|insulation|لفائف عزل بيتومين 4 مم|Bitumen waterproofing membrane 4 mm|عزل مائي|لفة|رول بيتومين
+builtin-hdpe-membrane|insulation|غشاء عزل HDPE|HDPE waterproofing membrane|عزل مائي|م²|عازل اتش دي بي اي
+builtin-cementitious-waterproofing|insulation|عازل إسمنتي مائي ثنائي المكونات|Two-component cementitious waterproofing|عزل مائي|كجم|عازل اسمنتي
+builtin-pu-waterproofing|insulation|عازل مائي بولي يوريثان|Polyurethane waterproof coating|عزل مائي|لتر|عازل بولي يوريثان
+builtin-bitumen-primer|insulation|برايمر بيتوميني|Bitumen primer|عزل مائي|لتر|أساس بيتومين
+builtin-waterproof-protection-board|insulation|لوح حماية للعزل المائي|Waterproofing protection board|حماية عزل|لوح|لوح حماية
+builtin-xps-25|insulation|لوح عزل XPS سماكة 25 مم|XPS insulation board 25 mm|عزل حراري|م²|فلين اكس بي اس
+builtin-xps-50|insulation|لوح عزل XPS سماكة 50 مم|XPS insulation board 50 mm|عزل حراري|م²|عازل حراري 5 سم
+builtin-eps-board|insulation|لوح بوليسترين EPS|EPS insulation board|عزل حراري|م²|فلين أبيض
+builtin-glass-wool|insulation|عازل صوف زجاجي|Glass wool insulation|عزل حراري وصوتي|م²|فايبر جلاس
+builtin-rock-wool|insulation|عازل صوف صخري|Rock wool insulation|عزل حراري وصوتي|م²|صوف معدني
+builtin-vapour-barrier|insulation|حاجز بخار|Vapour barrier sheet|عزل حراري|م²|نايلون حاجز بخار
+builtin-expansion-joint|insulation|حشوة فاصل تمدد|Expansion joint filler|فواصل|متر|فاصل تمدد
+builtin-waterstop|insulation|شريط مانع تسرب للفواصل|PVC waterstop|عزل مائي|متر|ووتر ستوب
+builtin-insulation-sealant|insulation|مانع تسرب للعزل|Insulation sealant|عزل مائي|عبوة|سيلانت عزل
+builtin-plywood-12|wood|خشب رقائقي 12 مم|Plywood 12 mm|ألواح خشبية|لوح|بلايوود 12
+builtin-plywood-18|wood|خشب رقائقي 18 مم|Plywood 18 mm|ألواح خشبية|لوح|بلايوود 18
+builtin-mdf-standard|wood|لوح MDF عادي|Standard MDF board|ألواح خشبية|لوح|ام دي اف
+builtin-mdf-moisture|wood|لوح MDF مقاوم للرطوبة|Moisture-resistant MDF board|ألواح خشبية|لوح|ام دي اف أخضر
+builtin-hdf-board|wood|لوح HDF|HDF board|ألواح خشبية|لوح|اتش دي اف
+builtin-wood-blockboard|wood|لوح بلوك بورد خشبي|Wood blockboard|ألواح خشبية|لوح|بلوك بورد
+builtin-wood-laminate|wood|قشرة لامينيت للأثاث|Furniture laminate sheet|قشور وتشطيبات|لوح|فورمايكا
+builtin-natural-veneer|wood|قشرة خشب طبيعية|Natural wood veneer|قشور وتشطيبات|م²|فينير خشب
+builtin-edge-banding|wood|شريط تلبيس حواف الألواح|Board edge banding|قشور وتشطيبات|متر|شريط حواف
+builtin-hardwood|wood|خشب صلب للنجارة|Hardwood timber|أخشاب|متر|خشب طبيعي
+builtin-softwood|wood|خشب لين للنجارة|Softwood timber|أخشاب|متر|خشب لين
+builtin-wpc-panel|wood|لوح خشبي بلاستيكي WPC|WPC panel|ألواح وتشطيبات|م²|خشب بلاستيك
+builtin-wood-flooring|wood|أرضية خشبية|Wood flooring|أرضيات خشبية|م²|باركيه خشب
+builtin-laminate-flooring|wood|أرضية لامينيت|Laminate flooring|أرضيات خشبية|م²|باركيه لامينيت
+builtin-wood-skirting|wood|وزرة خشب|Wood skirting|أرضيات خشبية|متر|وزرة خشبية
+builtin-wood-adhesive|wood|لاصق نجارة|Woodworking adhesive|مواد نجارة|لتر|غراء خشب
+builtin-wood-screw|wood|براغي خشب|Wood screws|مواد نجارة|علبة|مسامير خشب
+builtin-majlis-cushion-fabric|decor|قماش تنجيد وسائد المجلس|Majlis cushion upholstery fabric|أقمشة المجلس|متر|قماش مخدات
+builtin-sofa-upholstery|decor|قماش تنجيد الكنب|Sofa upholstery fabric|أقمشة المجلس|متر|قماش كنب
+builtin-upholstery-foam|decor|إسفنج تنجيد|Upholstery foam|أقمشة المجلس|لوح|فوم
+builtin-curtain-fabric|decor|قماش ستائر|Curtain fabric|ستائر|متر|قماش نافذة
+builtin-curtain-track|decor|سكة ستائر|Curtain track|ستائر|متر|مسار ستارة
+builtin-curtain-rod|decor|عمود ستارة|Curtain rod|ستائر|متر|ماسورة ستارة
+builtin-roller-blind|decor|ستارة رول|Roller blind|ستائر|م²|بلاك اوت رول
+builtin-majlis-carpet|decor|سجاد للمجلس|Majlis carpet|أرضيات وديكور|م²|سجادة مجلس
+builtin-prayer-carpet|decor|سجادة صلاة|Prayer carpet|أرضيات وديكور|قطعة|سجادة صلاة
+builtin-decorative-wall-panel|decor|لوح ديكور جداري|Decorative wall panel|كسوة وديكور|م²|بانل جداري
+builtin-fluted-panel|decor|لوح شرائح ديكورية|Fluted decorative panel|كسوة وديكور|م²|شرائح جدارية
+builtin-decorative-mirror|decor|مرآة ديكورية للمجلس|Decorative majlis mirror|إكسسوارات المجلس|قطعة|مراية ديكور
+builtin-wallpaper|decor|ورق جدران|Wallpaper|كسوة وديكور|لفة|ورق حائط
+builtin-decorative-screen|decor|فاصل ديكوري للمجلس|Decorative room screen|إكسسوارات المجلس|قطعة|بارتيشن
+builtin-wall-art|decor|لوحة جدارية|Wall art|إكسسوارات المجلس|قطعة|لوحة حائط
+builtin-majlis-floor-cushion|decor|مسند أرضي للمجلس|Majlis floor cushion|أثاث المجلس|قطعة|مساند أرضية
+builtin-majlis-back-cushion|decor|وسادة ظهر للمجلس|Majlis back cushion|أثاث المجلس|قطعة|مخدة ظهر
+builtin-decorative-trim|decor|حلية ديكورية داخلية|Interior decorative trim|كسوة وديكور|متر|برواز ديكور
+builtin-cornice-led-profile|decor|بروفايل إنارة مخفية ديكوري|Decorative concealed LED profile|إضاءة ديكورية|متر|بروفايل ليد مخفي
+builtin-wall-sconce|decor|مصباح جداري ديكوري|Decorative wall sconce|إضاءة ديكورية|قطعة|أبليك
+builtin-pendant-light|decor|مصباح سقفي معلق|Pendant light|إضاءة ديكورية|قطعة|ثريا معلقة
+builtin-cement-bag|consumables|أسمنت بورتلاندي كيس 50 كجم|Portland cement 50 kg bag|مواد تركيب عامة|كيس|اسمنت
+builtin-white-cement|consumables|أسمنت أبيض|White cement|مواد تركيب عامة|كيس|اسمنت أبيض
+builtin-ready-mortar|consumables|مونة إسمنتية جاهزة|Ready-mix mortar|مواد تركيب عامة|كيس|مونة جافة
+builtin-sand-bag|consumables|رمل مغسول|Washed sand|مواد تركيب عامة|كيس|رمل
+builtin-aggregate-bag|consumables|حصى صغير|Fine aggregate|مواد تركيب عامة|كيس|حصى
+builtin-tile-grout-sponge|consumables|إسفنجة تنظيف الجراوت|Grout cleaning sponge|أدوات تركيب|قطعة|اسفنجة بلاط
+builtin-construction-silicone|consumables|سيليكون عام للبناء|General construction silicone|مواد تركيب عامة|عبوة|سيلكون
+builtin-polyurethane-foam|consumables|رغوة تثبيت بولي يوريثان|Polyurethane expanding foam|مواد تركيب عامة|عبوة|فوم تمدد
+builtin-epoxy-adhesive|consumables|لاصق إيبوكسي ثنائي المكونات|Two-part epoxy adhesive|مواد تركيب عامة|كجم|غراء ايبوكسي
+builtin-contact-adhesive|consumables|لاصق تلامسي|Contact adhesive|مواد تركيب عامة|لتر|غراء تلامس
+builtin-nails|consumables|مسامير حديد متنوعة|Common steel nails|تثبيت|كجم|مسامير
+builtin-concrete-screw|consumables|براغي تثبيت خرسانة|Concrete screws|تثبيت|علبة|برغي خرسانة
+builtin-wall-plug|consumables|رول بلاج تثبيت جداري|Wall plugs and anchors|تثبيت|علبة|رول بلاج
+builtin-anchor-bolt|consumables|مسامير تثبيت تمددية|Expansion anchor bolts|تثبيت|قطعة|انكر بولت
+builtin-cutting-disc|consumables|قرص قطع حجر ومعدن|Cutting disc|أدوات تركيب|قطعة|دسك قطع
+builtin-grinding-disc|consumables|قرص جلخ معدني|Grinding disc|أدوات تركيب|قطعة|دسك جلخ
+builtin-drill-bit|consumables|ريشة حفر متنوعة|Drill bit|أدوات تركيب|قطعة|بنطة حفر
+builtin-ptfe-tape|consumables|شريط إحكام قلاوظ PTFE|PTFE thread seal tape|سباكة عامة|لفة|تيب تفلون
+builtin-electrical-tape|consumables|شريط عزل كهربائي|Electrical insulation tape|كهرباء عامة|لفة|تيب كهرباء
+builtin-cable-tie|consumables|رباط تثبيت كابلات|Cable ties|كهرباء عامة|علبة|ربطات كيبل
+builtin-safety-gloves|consumables|قفازات عمل واقية|Protective work gloves|سلامة موقع|زوج|كفوف
+builtin-safety-goggles|consumables|نظارات حماية|Safety goggles|سلامة موقع|قطعة|نظارات سلامة
+builtin-dust-mask|consumables|كمامة غبار|Dust mask|سلامة موقع|قطعة|كمام
+builtin-cleaning-agent|consumables|منظف بقايا الإسمنت والبلاط|Cement and tile residue cleaner|تنظيف موقع|لتر|منظف بلاط
+builtin-protective-sheet|consumables|غطاء حماية للأرضيات والأثاث|Protective covering sheet|حماية موقع|لفة|نايلون حماية
+builtin-measuring-tape|consumables|شريط قياس يدوي|Measuring tape|أدوات موقع|قطعة|متر قياس

@@ -1,6 +1,7 @@
 package com.majlisengineer.data
 
 import android.app.Application
+import android.util.Log
 import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,18 @@ class MajlisEngineerApp : Application() {
             .build()
         scope.launch {
             val dao = database.materialsDao()
-            if (dao.categoryCount() == 0) dao.insertCategories(MaterialCategorySeed.categories)
+            try {
+                dao.seedCatalogCategories(MaterialCategorySeed.categories)
+                val catalog = applicationContext.assets.open(MaterialCatalogSeed.ASSET_NAME).use {
+                    MaterialCatalogSeed.load(it)
+                }
+                if (dao.builtInCatalogCount() < catalog.size) {
+                    dao.seedCatalogMaterials(catalog)
+                    Log.i("MajlisEngineerApp", "Loaded ${catalog.size} built-in material catalog entries")
+                }
+            } catch (error: Exception) {
+                Log.e("MajlisEngineerApp", "Unable to load the bundled material catalog", error)
+            }
         }
     }
 }

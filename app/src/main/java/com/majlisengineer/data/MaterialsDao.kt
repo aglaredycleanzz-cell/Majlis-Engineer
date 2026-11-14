@@ -22,12 +22,18 @@ interface MaterialsDao {
     fun search(query: String): Flow<List<MaterialEntity>>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategories(items: List<MaterialCategoryEntity>)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun seedCatalogCategories(items: List<MaterialCategoryEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMaterials(items: List<MaterialEntity>)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun seedCatalogMaterials(items: List<MaterialEntity>)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertImage(image: MaterialImageEntity)
     @Query("SELECT COUNT(*) FROM material_categories")
     suspend fun categoryCount(): Int
+    @Query("SELECT COUNT(*) FROM materials WHERE id LIKE 'builtin-%'")
+    suspend fun builtInCatalogCount(): Int
 
     @Query("SELECT * FROM suppliers ORDER BY name")
     fun observeSuppliers(): Flow<List<SupplierEntity>>
