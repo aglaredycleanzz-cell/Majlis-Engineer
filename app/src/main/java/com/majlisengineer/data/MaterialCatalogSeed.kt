@@ -22,7 +22,13 @@ object MaterialCatalogSeed {
 
             val fields = line.split('|', limit = 7)
             require(fields.size == 7) { "Invalid material catalog row ${index + 2}: expected 7 fields" }
-            val (id, categoryId, nameAr, nameEn, subcategory, unit, aliases) = fields.map { it.trim() }
+            val id = fields[0].trim()
+            val categoryId = fields[1].trim()
+            val nameAr = fields[2].trim()
+            val nameEn = fields[3].trim()
+            val subcategory = fields[4].trim()
+            val unit = fields[5].trim()
+            val aliases = fields[6].trim()
             require(id.startsWith("builtin-")) { "Catalog row ${index + 2} has a non-stable built-in id" }
             require(categoryId in validCategoryIds) { "Catalog row ${index + 2} has unknown category $categoryId" }
             require(nameAr.isNotBlank() && nameEn.isNotBlank() && unit.isNotBlank()) {
