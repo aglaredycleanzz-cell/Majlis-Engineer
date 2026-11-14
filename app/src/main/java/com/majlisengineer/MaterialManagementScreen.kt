@@ -2,6 +2,8 @@ package com.majlisengineer
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -54,9 +56,10 @@ fun MaterialManagementScreen(dao: MaterialsDao) {
             MaterialManagementPage.Catalog -> {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("كتالوج المواد", style = MaterialTheme.typography.titleLarge)
-                    Button(onClick = { showMaterialDialog = true }) { Text("＋ مادة") }
+                    Button(onClick = { showMaterialDialog = true }) { Text("＋ صنف آخر") }
                 }
-                Text("السعر الأساسي محفوظ للمادة؛ سعر المشروع المنفصل لا يغيّر هذا السعر.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("${materials.size} صنفًا جاهزًا على الجهاز. الأسماء عامة؛ الأسعار والعلامات التجارية لا تُفترض.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("السعر المسجل للمادة مستقل عن سعر المشروع. الأصناف بلا سعر تظهر غير محددة ولا تعني أنها مجانية.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth(), label = { Text("بحث بالعربية أو الإنجليزية") }, singleLine = true)
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     FilterChip(selected = categoryId == null, onClick = { categoryId = null }, label = { Text("الكل") })
@@ -64,9 +67,13 @@ fun MaterialManagementScreen(dao: MaterialsDao) {
                         FilterChip(selected = categoryId == category.id, onClick = { categoryId = if (categoryId == category.id) null else category.id }, label = { Text(category.nameAr) })
                     }
                 }
-                Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (filtered.isEmpty()) EmptyManagementCard("لا توجد مواد مطابقة", "أضف مادة أو غيّر عبارة البحث.")
-                    filtered.forEach { material ->
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(bottom = 8.dp)
+                ) {
+                    if (filtered.isEmpty()) item { EmptyManagementCard("لا توجد مواد مطابقة", "أضف صنفًا غير موجود أو غيّر عبارة البحث.") }
+                    items(filtered, key = { it.id }) { material ->
                         MaterialPriceCard(
                             material = material,
                             categoryName = categories.firstOrNull { it.id == material.categoryId }?.nameAr.orEmpty(),
@@ -136,15 +143,16 @@ private fun MaterialPriceCard(
     onEditBase: () -> Unit,
     onAddOffer: () -> Unit
 ) {
+    val basePriceLabel = if (material.basePriceUpdatedAt > 0L) formatMaterialOmr(material.baseUnitPriceOmr) else "غير محدد"
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(material.nameAr, style = MaterialTheme.typography.titleMedium)
             if (material.nameEn.isNotBlank()) Text(material.nameEn, fontSize = 12.sp)
             Text(categoryName, color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
             if (material.brand.isNotBlank()) Text("الماركة: ${material.brand}", fontSize = 12.sp)
-            Text("السعر الأساسي: ${formatMaterialOmr(material.baseUnitPriceOmr)} / ${material.baseUnit}", fontSize = 13.sp)
+            Text("السعر الأساسي: $basePriceLabel / ${material.baseUnit}", fontSize = 13.sp)
             Text(
-                "آخر تحديث للسعر الأساسي: ${if (material.basePriceUpdatedAt > 0) java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date(material.basePriceUpdatedAt)) else "غير مسجل"}",
+                "آخر تحديث للسعر الأساسي: ${if (material.basePriceUpdatedAt > 0) java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(java.util.Date(material.basePriceUpdatedAt)) else "لا يوجد سعر مسجل"}",
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -178,12 +186,13 @@ private fun MaterialFormDialog(categories: List<MaterialCategoryEntity>, onDismi
     var nameEn by remember { mutableStateOf("") }
     var unit by remember { mutableStateOf("قطعة") }
     var brand by remember { mutableStateOf("") }
-    var basePrice by remember { mutableStateOf("0") }
+    var basePrice by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var aliases by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
-    val parsedPrice = basePrice.toDoubleOrNull()
-    val valid = nameAr.isNotBlank() && categoryId.isNotBlank() && unit.isNotBlank() && (parsedPrice ?: -1.0) >= 0 && parsedPrice?.isFinite() == true
+    val parsedPrice = if (basePrice.isBlank()) null else basePrice.toDoubleOrNull()
+    val valid = nameAr.isNotBlank() && categoryId.isNotBlank() && unit.isNotBlank() &&
+        (basePrice.isBlank() || ((parsedPrice ?: -1.0) >= 0 && parsedPrice?.isFinite() == true))
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("إضافة مادة إلى الكتالوج") },
@@ -199,14 +208,14 @@ private fun MaterialFormDialog(categories: List<MaterialCategoryEntity>, onDismi
                 OutlinedTextField(nameEn, { nameEn = it }, label = { Text("الاسم بالإنجليزية") }, singleLine = true)
                 OutlinedTextField(unit, { unit = it }, label = { Text("وحدة القياس / البيع *") }, singleLine = true)
                 OutlinedTextField(brand, { brand = it }, label = { Text("الماركة") }, singleLine = true)
-                OutlinedTextField(basePrice, { basePrice = it }, label = { Text("السعر الأساسي للوحدة ر.ع") }, singleLine = true)
+                OutlinedTextField(basePrice, { basePrice = it }, label = { Text("السعر الأساسي للوحدة ر.ع (اختياري)") }, singleLine = true)
                 OutlinedTextField(note, { note = it }, label = { Text("ملاحظة تعريفية") })
                 OutlinedTextField(aliases, { aliases = it }, label = { Text("أسماء بديلة للبحث") })
             }
         },
         confirmButton = { TextButton(enabled = valid, onClick = {
             val normalized = MaterialSearchNormalizer.normalize("$nameAr $nameEn $aliases")
-            onSave(MaterialEntity(UUID.randomUUID().toString(), categoryId, nameAr.trim(), nameEn.trim(), shortNote = note.trim(), aliases = aliases.trim(), normalizedSearchText = normalized, baseUnit = unit.trim(), brand = brand.trim(), baseUnitPriceOmr = parsedPrice!!, basePriceUpdatedAt = System.currentTimeMillis()))
+            onSave(MaterialEntity(UUID.randomUUID().toString(), categoryId, nameAr.trim(), nameEn.trim(), shortNote = note.trim(), aliases = aliases.trim(), normalizedSearchText = normalized, baseUnit = unit.trim(), brand = brand.trim(), baseUnitPriceOmr = parsedPrice ?: 0.0, basePriceUpdatedAt = if (parsedPrice == null) 0L else System.currentTimeMillis()))
         }) { Text("حفظ المادة") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("إلغاء") } }
     )
@@ -214,21 +223,20 @@ private fun MaterialFormDialog(categories: List<MaterialCategoryEntity>, onDismi
 
 @Composable
 private fun MaterialBasePriceDialog(material: MaterialEntity, onDismiss: () -> Unit, onSave: (MaterialEntity) -> Unit) {
-    var unit by remember(material.id) { mutableStateOf(material.baseUnit) }
     var brand by remember(material.id) { mutableStateOf(material.brand) }
-    var price by remember(material.id) { mutableStateOf(material.baseUnitPriceOmr.toString()) }
-    val parsed = price.toDoubleOrNull()
-    val valid = unit.isNotBlank() && (parsed ?: -1.0) >= 0 && parsed?.isFinite() == true
+    var price by remember(material.id) { mutableStateOf(if (material.basePriceUpdatedAt > 0L) material.baseUnitPriceOmr.toString() else "") }
+    val parsed = if (price.isBlank()) null else price.toDoubleOrNull()
+    val valid = price.isBlank() || ((parsed ?: -1.0) >= 0 && parsed?.isFinite() == true)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("تعديل السعر الأساسي — ${material.nameAr}") },
         text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(unit, { unit = it }, label = { Text("وحدة القياس / البيع") }, singleLine = true)
+            Text("وحدة البيع الثابتة: ${material.baseUnit}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(brand, { brand = it }, label = { Text("الماركة") }, singleLine = true)
-            OutlinedTextField(price, { price = it }, label = { Text("السعر الأساسي للوحدة ر.ع") }, singleLine = true)
+            OutlinedTextField(price, { price = it }, label = { Text("السعر الأساسي للوحدة ر.ع (اتركه فارغًا إن لم يُسعّر)") }, singleLine = true)
             Text("يُحدّث سجل هذه المادة فقط. سعر أي مشروع محفوظ كاستثناء لا يتغير.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } },
-        confirmButton = { TextButton(enabled = valid, onClick = { onSave(material.copy(baseUnit = unit.trim(), brand = brand.trim(), baseUnitPriceOmr = parsed!!, basePriceUpdatedAt = System.currentTimeMillis())) }) { Text("حفظ") } },
+        confirmButton = { TextButton(enabled = valid, onClick = { onSave(material.copy(brand = brand.trim(), baseUnitPriceOmr = parsed ?: 0.0, basePriceUpdatedAt = if (parsed == null) 0L else System.currentTimeMillis())) }) { Text("حفظ") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("إلغاء") } }
     )
 }
