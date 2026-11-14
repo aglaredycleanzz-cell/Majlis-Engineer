@@ -20,6 +20,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,10 +31,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.majlisengineer.data.MaterialsDao
 import com.majlisengineer.data.MepElementEntity
@@ -55,6 +54,17 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 private const val MAX_MEP_ELEMENTS_PER_SURVEY = 200
+private const val MEP_SNAP_GRID_METRES = 0.05
+
+private data class MepDrawingSpec(
+    val system: MepSystem,
+    val type: MepElementType,
+    val diameterMm: Double,
+    val material: String,
+    val label: String,
+    val existingId: String? = null,
+    val createdAt: Long? = null
+)
 
 @Composable
 fun ProjectMepScreen(
@@ -74,17 +84,21 @@ fun ProjectMepScreen(
             selectedRoomId = firstValidSurvey?.id ?: surveys.firstOrNull()?.id
         }
     }
-    var selectedSystem by remember { mutableStateOf(MepSystem.COLD_WATER) }
+    var selectedSystem by remember(projectId) { mutableStateOf(MepSystem.COLD_WATER) }
     var visibleSystems by remember { mutableStateOf(MepSystem.entries.toSet()) }
     var showRoomShell by remember { mutableStateOf(true) }
     var editingElement by remember { mutableStateOf<MepElementEntity?>(null) }
     var showElementEditor by remember { mutableStateOf(false) }
+    var drawingSpec by remember(projectId, survey?.id) { mutableStateOf<MepDrawingSpec?>(null) }
+    var drawingPoints by remember(projectId, survey?.id) { mutableStateOf(emptyList<MepPoint>()) }
+    var drawingElevation by remember(projectId, survey?.id) { mutableStateOf(0.45) }
+    var drawingError by remember(projectId, survey?.id) { mutableStateOf<String?>(null) }
     var selectedElementId by remember(projectId, survey?.id) { mutableStateOf<String?>(null) }
     val selectedElement = elements.firstOrNull { it.id == selectedElementId }
 
     if (survey != null && !MepRoomBounds(survey.lengthM, survey.widthM, survey.heightM).isValid) {
         Column(modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("الأنظمة التفاعلية — MEP", style = MaterialTheme.typography.titleLarge)
+            Text("مساحة الرسم ثلاثية الأبعاد", style = MaterialTheme.typography.titleLarge)
             Card(Modifier.fillMaxWidth()) {
                 Text(
                     "أبعاد هذا القياس غير صالحة للعرض ثلاثي الأبعاد. صحح الطول والعرض والارتفاع إلى أرقام موجبة لا تتجاوز 1000 متر من تبويب المعاينة.",
@@ -95,8 +109,8 @@ fun ProjectMepScreen(
         return
     }
 
-    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("الأنظمة التفاعلية — MEP", style = MaterialTheme.typography.titleLarge)
+    Column(modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("مساحة الرسم ثلاثية الأبعاد", style = MaterialTheme.typography.titleLarge)
                 Text("عرض هندسي محلي للمسارات والقطع. لا يحسب الضغط أو سلامة الكهرباء، ولا يطرح فتحات الأبواب والنوافذ من جدران المعاينة.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         if (surveys.isEmpty()) {
@@ -119,90 +133,176 @@ fun ProjectMepScreen(
                 }
             }
             survey?.let { room ->
-                Text("${room.spaceName}: ${fmt(room.lengthM)} × ${fmt(room.widthM)} × ${fmt(room.heightM)} م — إحداثيات محلية من زاوية الغرفة.", style = MaterialTheme.typography.bodySmall)
+                Text("${room.spaceName}: ${fmt(room.lengthM)} × ${fmt(room.widthM)} × ${fmt(room.heightM)} م — النموذج مضبوط على القياس المحفوظ.", style = MaterialTheme.typography.bodySmall)
 
                 MepScene(
+                    modifier = Modifier.fillMaxWidth().weight(1.25f),
                     room = room,
                     elements = elements.filter { MepSystem.fromStored(it.system) in visibleSystems },
                     visibleSystems = visibleSystems,
                     showShell = showRoomShell,
+                    drawingPoints = drawingPoints,
+                    drawingType = drawingSpec?.type,
+                    drawingSystem = drawingSpec?.system,
+                    onPickRoomPoint = { position, surface ->
+                        val scale = 6.0 / maxOf(room.lengthM, room.widthM, room.heightM, 1.0)
+                        val rawPoint = MepPoint(
+                            position.x.toDouble() / scale,
+                            if (surface == "mep-floor") drawingElevation.coerceIn(0.0, room.heightM)
+                            else position.y.toDouble() / scale,
+                            position.z.toDouble() / scale
+                        )
+                        val point = MepGeometryCodec.snapToRoom(
+                            rawPoint,
+                            MepRoomBounds(room.lengthM, room.widthM, room.heightM),
+                            MEP_SNAP_GRID_METRES
+                        )
+                        val maxPoints = when (drawingSpec?.type) {
+                            MepElementType.ELBOW -> 3
+                            MepElementType.TEE -> 4
+                            MepElementType.VALVE, MepElementType.LIGHT_POINT,
+                            MepElementType.SWITCH_POINT, MepElementType.SOCKET_POINT -> 1
+                            else -> 16
+                        }
+                        if (point != null && drawingSpec != null && drawingPoints.size < maxPoints) drawingPoints = drawingPoints + point
+                    },
                     onSelectElement = { selectedElementId = it }
                 )
 
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = showRoomShell, onClick = { showRoomShell = !showRoomShell }, label = { Text(if (showRoomShell) "إخفاء الجدران" else "إظهار الجدران") })
-                    if (elements.size < MAX_MEP_ELEMENTS_PER_SURVEY) {
-                        Button(onClick = { editingElement = null; showElementEditor = true }) { Text("＋ إضافة مسار/قطعة") }
-                    } else {
-                        Text("بلغت هذه الغرفة حد $MAX_MEP_ELEMENTS_PER_SURVEY عنصرًا.", style = MaterialTheme.typography.bodySmall)
+                Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = showRoomShell, onClick = { showRoomShell = !showRoomShell }, label = { Text(if (showRoomShell) "إخفاء الجدران" else "إظهار الجدران") })
+                        if (elements.size < MAX_MEP_ELEMENTS_PER_SURVEY) {
+                            Button(onClick = { editingElement = null; showElementEditor = true }) { Text("＋ ارسم في المشهد 3D") }
+                        } else {
+                            Text("بلغت هذه الغرفة حد $MAX_MEP_ELEMENTS_PER_SURVEY عنصرًا.", style = MaterialTheme.typography.bodySmall)
+                        }
                     }
-                }
-                Text("الطبقات — اضغط لتشغيل أو إخفاء", style = MaterialTheme.typography.titleSmall)
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    MepSystem.entries.groupBy { it.discipline }.forEach { (discipline, systems) ->
-                        Text(if (discipline == MepDiscipline.PLUMBING) "السباكة والصرف" else "الكهرباء والإنارة", style = MaterialTheme.typography.labelLarge)
-                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            systems.forEach { system ->
-                                FilterChip(
-                                    selected = system in visibleSystems,
-                                    onClick = { visibleSystems = if (system in visibleSystems) visibleSystems - system else visibleSystems + system },
-                                    label = { Text("● ${system.label}", color = parseColor(system.colorHex)) }
+                    drawingSpec?.let { spec ->
+                        val canSave = when (spec.type) {
+                            MepElementType.PIPE_RUN, MepElementType.CONDUIT_RUN, MepElementType.CABLE_RUN -> drawingPoints.size >= 2
+                            MepElementType.ELBOW -> drawingPoints.size == 3
+                            MepElementType.TEE -> drawingPoints.size == 4
+                            else -> drawingPoints.size == 1
+                        }
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("ارسم ${spec.type.label} — ${spec.system.label}", style = MaterialTheme.typography.titleSmall)
+                                val drawingHelp = when (spec.type) {
+                                    MepElementType.PIPE_RUN, MepElementType.CONDUIT_RUN, MepElementType.CABLE_RUN -> "ابدأ بنقطة ثم المس نقاط الانعطاف والنهاية. نقطتان حد أدنى؛ يمكنك الاستمرار حتى 16 نقطة."
+                                    MepElementType.ELBOW -> "المس بداية الكوع، ثم نقطة الانحناء، ثم النهاية."
+                                    MepElementType.TEE -> "المس مركز وصلة T أولًا، ثم المس نهايات الأفرع الثلاثة."
+                                    else -> "المس سطح الأرض أو الجدار مرة واحدة لوضع القطعة."
+                                }
+                                Text(drawingHelp, style = MaterialTheme.typography.bodySmall)
+                                Text("اسحب بإصبع لتدوير المشهد، وبإصبعين للتقريب والإبعاد.", style = MaterialTheme.typography.bodySmall)
+                                Text("النقاط: ${drawingPoints.size} • الالتقاط على شبكة 5 سم", style = MaterialTheme.typography.bodySmall)
+                                Text("ارتفاع النقرة على الأرض: ${fmt(drawingElevation)} م", style = MaterialTheme.typography.labelMedium)
+                                Slider(
+                                    value = drawingElevation.toFloat().coerceIn(0f, room.heightM.toFloat()),
+                                    onValueChange = { drawingElevation = it.toDouble() },
+                                    valueRange = 0f..room.heightM.toFloat().coerceAtLeast(0.05f)
                                 )
+                                drawingError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    OutlinedButton(onClick = { drawingPoints = drawingPoints.dropLast(1); drawingError = null }, enabled = drawingPoints.isNotEmpty()) { Text("تراجع نقطة") }
+                                    TextButton(onClick = { drawingSpec = null; drawingPoints = emptyList(); drawingError = null }) { Text("إلغاء") }
+                                    Button(onClick = {
+                                        val bounds = MepRoomBounds(room.lengthM, room.widthM, room.heightM)
+                                        val problem = MepGeometryCodec.validate(spec.type, drawingPoints)
+                                            ?: if (drawingPoints.any { !bounds.contains(it) }) "إحدى النقاط خارج حدود الغرفة." else null
+                                        if (problem != null) {
+                                            drawingError = problem
+                                        } else {
+                                            val points = drawingPoints
+                                            scope.launch {
+                                                val entity = MepElementEntity(
+                                                    id = spec.existingId ?: UUID.randomUUID().toString(),
+                                                    projectId = projectId,
+                                                    surveyId = room.id,
+                                                    system = spec.system.name,
+                                                    elementType = spec.type.name,
+                                                    geometryData = MepGeometryCodec.encode(points)!!,
+                                                    nominalDiameterMm = spec.diameterMm,
+                                                    material = spec.material,
+                                                    label = spec.label,
+                                                    createdAt = spec.createdAt ?: System.currentTimeMillis()
+                                                )
+                                                dao.saveMepElement(entity)
+                                                selectedElementId = entity.id
+                                                selectedSystem = spec.system
+                                            }
+                                            drawingSpec = null
+                                            drawingPoints = emptyList()
+                                            drawingError = null
+                                        }
+                                    }, enabled = canSave) { Text("حفظ العنصر") }
+                                }
                             }
                         }
                     }
-                }
 
-                selectedElement?.let { item ->
-                    val itemSystem = MepSystem.fromStored(item.system)
-                    val type = MepElementType.fromStored(item.elementType)
-                    val points = MepGeometryCodec.decode(item.geometryData).orEmpty()
-                    val length = type?.let { MepGeometryCodec.lengthMeters(it, points) } ?: 0.0
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text(item.label.ifBlank { type?.label ?: "عنصر" }, style = MaterialTheme.typography.titleMedium)
-                            Text("${itemSystem?.label ?: item.system} • ${type?.label ?: item.elementType} • ${fmt(item.nominalDiameterMm)} مم • ${item.material}")
-                            if (type?.isRun == true || type == MepElementType.ELBOW || type == MepElementType.TEE) Text("الطول الهندسي: ${fmt(length)} م")
-                            Text("الكمية والتكلفة لم تُربطا بعد ببنود BOQ؛ الطول المعروض قراءة هندسية أولية.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                TextButton(onClick = { editingElement = item; showElementEditor = true }) { Text("تعديل") }
-                                TextButton(onClick = { scope.launch { dao.deleteMepElement(item.id, projectId) }; selectedElementId = null }) { Text("حذف", color = MaterialTheme.colorScheme.error) }
+                    Text("الطبقات — اضغط لتشغيل أو إخفاء", style = MaterialTheme.typography.titleSmall)
+                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        MepSystem.entries.groupBy { it.discipline }.forEach { (discipline, systems) ->
+                            Text(if (discipline == MepDiscipline.PLUMBING) "السباكة والصرف" else "الكهرباء والإنارة", style = MaterialTheme.typography.labelLarge)
+                            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                systems.forEach { system ->
+                                    FilterChip(
+                                        selected = system in visibleSystems,
+                                        onClick = { visibleSystems = if (system in visibleSystems) visibleSystems - system else visibleSystems + system },
+                                        label = { Text("● ${system.label}", color = parseColor(system.colorHex)) }
+                                    )
+                                }
                             }
                         }
                     }
-                } ?: Text("المسّ مسارًا أو قطعة في المشهد لعرض بياناتها. عدد العناصر: ${elements.size}.", style = MaterialTheme.typography.bodySmall)
 
-                Text("ألوان الكهرباء توضيحية: R/Y/B أحمر/أصفر/أزرق، المحايد أسود، والحماية أخضر. لا تعتمد اللون وحده في التوصيل؛ راجع إصدار OES-4 المعتمد ومهندسًا مختصًا.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("التمديدات الحالية محفوظة محليًا على هذا الجهاز. ربطها بالحصر وجدول التنفيذ (4D) يأتي بعد اعتماد حسابات الكميات والتحقق على الهاتف.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    selectedElement?.let { item ->
+                        val itemSystem = MepSystem.fromStored(item.system)
+                        val type = MepElementType.fromStored(item.elementType)
+                        val points = MepGeometryCodec.decode(item.geometryData).orEmpty()
+                        val length = type?.let { MepGeometryCodec.lengthMeters(it, points) } ?: 0.0
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text(item.label.ifBlank { type?.label ?: "عنصر" }, style = MaterialTheme.typography.titleMedium)
+                                Text("${itemSystem?.label ?: item.system} • ${type?.label ?: item.elementType} • ${fmt(item.nominalDiameterMm)} مم • ${item.material}")
+                                if (type?.isRun == true || type == MepElementType.ELBOW || type == MepElementType.TEE) Text("الطول الهندسي: ${fmt(length)} م")
+                                Text("الكمية والتكلفة لم تُربطا بعد ببنود BOQ؛ الطول المعروض قراءة هندسية أولية.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TextButton(onClick = { editingElement = item; showElementEditor = true }) { Text("إعادة رسم في 3D") }
+                                    TextButton(onClick = { scope.launch { dao.deleteMepElement(item.id, projectId) }; selectedElementId = null }) { Text("حذف", color = MaterialTheme.colorScheme.error) }
+                                }
+                            }
+                        }
+                    } ?: Text("المسّ مسارًا أو قطعة في المشهد لعرض بياناتها. عدد العناصر: ${elements.size}.", style = MaterialTheme.typography.bodySmall)
 
-                if (showElementEditor) {
-                    MepElementEditor(
-                        room = room,
-                        existing = editingElement,
-                        initialSystem = editingElement?.let { MepSystem.fromStored(it.system) } ?: selectedSystem,
-                        onDismiss = { showElementEditor = false; editingElement = null },
-                        onSave = { system, type, points, diameter, material, label ->
-                            scope.launch {
-                                val entity = MepElementEntity(
-                                    id = editingElement?.id ?: UUID.randomUUID().toString(),
-                                    projectId = projectId,
-                                    surveyId = room.id,
-                                    system = system.name,
-                                    elementType = type.name,
-                                    geometryData = MepGeometryCodec.encode(points)!!,
-                                    nominalDiameterMm = diameter,
+                    Text("ألوان الكهرباء توضيحية: R/Y/B أحمر/أصفر/أزرق، المحايد أسود، والحماية أخضر. لا تعتمد اللون وحده في التوصيل؛ راجع إصدار OES-4 المعتمد ومهندسًا مختصًا.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("التمديدات الحالية محفوظة محليًا على هذا الجهاز. ربطها بالحصر وجدول التنفيذ (4D) يأتي بعد اعتماد حسابات الكميات والتحقق على الهاتف.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                    if (showElementEditor) {
+                        MepElementEditor(
+                            existing = editingElement,
+                            initialSystem = editingElement?.let { MepSystem.fromStored(it.system) } ?: selectedSystem,
+                            onDismiss = { showElementEditor = false; editingElement = null },
+                            onSave = { system, type, diameter, material, label ->
+                                drawingSpec = MepDrawingSpec(
+                                    system = system,
+                                    type = type,
+                                    diameterMm = diameter,
                                     material = material,
                                     label = label,
-                                    createdAt = editingElement?.createdAt ?: System.currentTimeMillis()
+                                    existingId = editingElement?.id,
+                                    createdAt = editingElement?.createdAt
                                 )
-                                dao.saveMepElement(entity)
-                                selectedElementId = entity.id
-                                selectedSystem = system
+                                drawingPoints = emptyList()
+                                drawingElevation = room.heightM * 0.35
+                                drawingError = null
+                                showElementEditor = false
+                                editingElement = null
                             }
-                            showElementEditor = false
-                            editingElement = null
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -211,15 +311,21 @@ fun ProjectMepScreen(
 
 @Composable
 private fun MepScene(
+    modifier: Modifier,
     room: SiteSurveyEntity,
     elements: List<MepElementEntity>,
     visibleSystems: Set<MepSystem>,
     showShell: Boolean,
+    drawingPoints: List<MepPoint>,
+    drawingType: MepElementType?,
+    drawingSystem: MepSystem?,
+    onPickRoomPoint: (Position, String) -> Unit,
     onSelectElement: (String?) -> Unit
 ) {
     val engine = rememberEngine()
     val materialLoader = rememberMaterialLoader(engine)
     val nodes = rememberNodes()
+    val previewNodes = rememberNodes()
     val viewScale = 6.0 / maxOf(room.lengthM, room.widthM, room.heightM, 1.0)
     val length = (room.lengthM * viewScale).toFloat()
     val width = (room.widthM * viewScale).toFloat()
@@ -253,19 +359,34 @@ private fun MepScene(
         }
     }
 
+    LaunchedEffect(drawingPoints, drawingType, drawingSystem, viewScale) {
+        previewNodes.toList().forEach { it.destroy() }
+        previewNodes.clear()
+        val type = drawingType
+        val material = drawingSystem?.let { colors[it] }
+        if (type != null && material != null && drawingPoints.isNotEmpty()) {
+            previewNodes += drawingPreviewNodes(engine, drawingPoints, type, material, viewScale.toFloat())
+        }
+    }
+
     Scene(
-        modifier = Modifier.fillMaxWidth().height(330.dp),
+        modifier = modifier,
         engine = engine,
         materialLoader = materialLoader,
         cameraNode = cameraNode,
         cameraManipulator = cameraManipulator,
-        childNodes = nodes,
+        childNodes = nodes + previewNodes,
         onTouchEvent = { event, hitResult ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                val name = hitResult?.node?.name
-                onSelectElement(name?.takeUnless { it == "mep-room" })
+            if (event.action == MotionEvent.ACTION_UP && hitResult != null) {
+                val name = hitResult.node.name.orEmpty()
+                if (name == "mep-floor" || name == "mep-wall") {
+                    if (drawingType != null) onPickRoomPoint(hitResult.worldPosition, name)
+                    else onSelectElement(null)
+                } else {
+                    onSelectElement(name.takeUnless { it.isBlank() || it == "mep-room" })
+                }
             }
-            hitResult != null
+            false
         }
     )
 }
@@ -282,15 +403,62 @@ private fun roomShell(
     val w = (room.widthM * scale).toFloat()
     val h = (room.heightM * scale).toFloat()
     val result = mutableListOf<io.github.sceneview.node.Node>()
-    result += CubeNode(engine, size = Size(l, 0.05f, w), center = Position(l / 2f, -0.03f, w / 2f), materialInstance = floorMaterial).apply { name = "mep-room" }
+    result += CubeNode(engine, size = Size(l, 0.05f, w), center = Position(l / 2f, -0.03f, w / 2f), materialInstance = floorMaterial).apply {
+        name = "mep-floor"
+        isTouchable = true
+    }
     if (visible) {
         val t = 0.035f
-        result += CubeNode(engine, size = Size(l, h, t), center = Position(l / 2f, h / 2f, 0f), materialInstance = wallMaterial).apply { name = "mep-room" }
-        result += CubeNode(engine, size = Size(l, h, t), center = Position(l / 2f, h / 2f, w), materialInstance = wallMaterial).apply { name = "mep-room" }
-        result += CubeNode(engine, size = Size(t, h, w), center = Position(0f, h / 2f, w / 2f), materialInstance = wallMaterial).apply { name = "mep-room" }
-        result += CubeNode(engine, size = Size(t, h, w), center = Position(l, h / 2f, w / 2f), materialInstance = wallMaterial).apply { name = "mep-room" }
+        result += CubeNode(engine, size = Size(l, h, t), center = Position(l / 2f, h / 2f, 0f), materialInstance = wallMaterial).apply { name = "mep-wall"; isTouchable = true }
+        result += CubeNode(engine, size = Size(l, h, t), center = Position(l / 2f, h / 2f, w), materialInstance = wallMaterial).apply { name = "mep-wall"; isTouchable = true }
+        result += CubeNode(engine, size = Size(t, h, w), center = Position(0f, h / 2f, w / 2f), materialInstance = wallMaterial).apply { name = "mep-wall"; isTouchable = true }
+        result += CubeNode(engine, size = Size(t, h, w), center = Position(l, h / 2f, w / 2f), materialInstance = wallMaterial).apply { name = "mep-wall"; isTouchable = true }
     }
     return result
+}
+
+private fun drawingPreviewNodes(
+    engine: com.google.android.filament.Engine,
+    points: List<MepPoint>,
+    type: MepElementType,
+    material: com.google.android.filament.MaterialInstance,
+    scale: Float
+): List<io.github.sceneview.node.Node> {
+    val output = mutableListOf<io.github.sceneview.node.Node>()
+    val scaled = points.map { MepPoint(it.x * scale, it.y * scale, it.z * scale) }
+    val segments = when (type) {
+        MepElementType.TEE -> scaled.drop(1).map { scaled.first() to it }
+        MepElementType.PIPE_RUN, MepElementType.CONDUIT_RUN, MepElementType.CABLE_RUN, MepElementType.ELBOW -> scaled.zipWithNext()
+        else -> emptyList()
+    }
+    segments.forEach { (start, end) ->
+        val length = MepGeometryCodec.distance(start, end).toFloat()
+        if (length > 0.002f) {
+            val midpoint = Position(
+                ((start.x + end.x) / 2).toFloat(),
+                ((start.y + end.y) / 2).toFloat(),
+                ((start.z + end.z) / 2).toFloat()
+            )
+            output += CylinderNode(engine, radius = 0.018f, height = length, materialInstance = material).apply {
+                name = "mep-preview"
+                isTouchable = false
+                position = midpoint
+                alignLocalYWith(this, start, end)
+            }
+        }
+    }
+    scaled.forEach { point ->
+        output += SphereNode(
+            engine,
+            radius = 0.032f,
+            center = Position(point.x.toFloat(), point.y.toFloat(), point.z.toFloat()),
+            materialInstance = material
+        ).apply {
+            name = "mep-preview"
+            isTouchable = false
+        }
+    }
+    return output
 }
 
 private fun elementNodes(
@@ -334,27 +502,16 @@ private fun alignLocalYWith(node: CylinderNode, start: MepPoint, end: MepPoint) 
 
 @Composable
 private fun MepElementEditor(
-    room: SiteSurveyEntity,
     existing: MepElementEntity?,
     initialSystem: MepSystem,
     onDismiss: () -> Unit,
-    onSave: (MepSystem, MepElementType, List<MepPoint>, Double, String, String) -> Unit
+    onSave: (MepSystem, MepElementType, Double, String, String) -> Unit
 ) {
     var system by remember(existing?.id) { mutableStateOf(initialSystem) }
     val choices = MepElementType.allowedFor(system)
     var type by remember(existing?.id) {
         mutableStateOf(existing?.let { MepElementType.fromStored(it.elementType) }?.takeIf { it in choices } ?: choices.first())
     }
-    val existingPoints = remember(existing?.geometryData) { existing?.geometryData?.let(MepGeometryCodec::decode).orEmpty() }
-    val anchor = existing?.let {
-        MepGeometryCodec.fittingAnchor(MepElementType.fromStored(it.elementType) ?: choices.first(), existingPoints)
-    } ?: existingPoints.firstOrNull()
-    var x1 by remember(existing?.id) { mutableStateOf(anchor?.x?.let(::fmt) ?: fmt(room.lengthM * 0.2)) }
-    var y1 by remember(existing?.id) { mutableStateOf(anchor?.y?.let(::fmt) ?: fmt(room.heightM * 0.35)) }
-    var z1 by remember(existing?.id) { mutableStateOf(anchor?.z?.let(::fmt) ?: fmt(room.widthM * 0.2)) }
-    var x2 by remember(existing?.id) { mutableStateOf(existingPoints.getOrNull(1)?.x?.let(::fmt) ?: fmt(room.lengthM * 0.8)) }
-    var y2 by remember(existing?.id) { mutableStateOf(existingPoints.getOrNull(1)?.y?.let(::fmt) ?: fmt(room.heightM * 0.35)) }
-    var z2 by remember(existing?.id) { mutableStateOf(existingPoints.getOrNull(1)?.z?.let(::fmt) ?: fmt(room.widthM * 0.8)) }
     var diameter by remember(existing?.id) { mutableStateOf(existing?.nominalDiameterMm?.let(::fmt) ?: if (system.discipline == MepDiscipline.PLUMBING) "25" else "20") }
     var material by remember(existing?.id) { mutableStateOf(existing?.material ?: if (system.discipline == MepDiscipline.PLUMBING) "PPR" else "PVC / نحاس حسب الموصل") }
     var label by remember(existing?.id) { mutableStateOf(existing?.label ?: "") }
@@ -371,54 +528,25 @@ private fun MepElementEditor(
                 })
                 Text("نوع العنصر", style = MaterialTheme.typography.labelLarge)
                 SimpleMenu(value = type.label, options = choices.map { it to it.label }, onSelect = { type = it })
-                if (type.isRun) {
-                    Text("نقطة البداية (م)")
-                    CoordinateFields(x1, y1, z1, { x1 = it }, { y1 = it }, { z1 = it })
-                    Text("نقطة النهاية (م)")
-                    CoordinateFields(x2, y2, z2, { x2 = it }, { y2 = it }, { z2 = it })
-                } else {
-                    Text(if (type == MepElementType.ELBOW || type == MepElementType.TEE) "مركز القطعة (م) — تضاف أذرع تمثيلية قصيرة" else "موضع العنصر (م)")
-                    CoordinateFields(x1, y1, z1, { x1 = it }, { y1 = it }, { z1 = it })
-                    if (type == MepElementType.ELBOW || type == MepElementType.TEE) {
-                        Text("الكوع/وصلة T في هذه النسخة نموذج بصري ابتدائي؛ راجع نقاط الاتصال والأبعاد قبل الاعتماد.", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
+                Text("بعد اختيار المواصفات، ستضع المسار أو القطعة مباشرة على أرضية/جدار المشهد ثلاثي الأبعاد.", style = MaterialTheme.typography.bodySmall)
                 OutlinedTextField(diameter, { diameter = it }, Modifier.fillMaxWidth(), label = { Text("القطر الاسمي (مم)") }, singleLine = true)
                 OutlinedTextField(material, { material = it }, Modifier.fillMaxWidth(), label = { Text("المادة / نوع الموصل") }, singleLine = true)
                 OutlinedTextField(label, { label = it }, Modifier.fillMaxWidth(), label = { Text("وسم اختياري") }, singleLine = true)
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                Text("النقاط بالمتر من أصل الغرفة. لا يستخدم التطبيق لونًا منفردًا لتحديد وظيفة كهربائية.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("ألوان الخدمات للتوضيح فقط؛ اعتمد الاسم والمخطط ومراجعة المختص.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         confirmButton = {
             Button(onClick = {
-                val bounds = MepRoomBounds(room.lengthM, room.widthM, room.heightM)
-                val p1 = MepPoint(
-                    MepGeometryCodec.parseDecimal(x1) ?: Double.NaN,
-                    MepGeometryCodec.parseDecimal(y1) ?: Double.NaN,
-                    MepGeometryCodec.parseDecimal(z1) ?: Double.NaN
-                )
-                val p2 = MepPoint(
-                    MepGeometryCodec.parseDecimal(x2) ?: Double.NaN,
-                    MepGeometryCodec.parseDecimal(y2) ?: Double.NaN,
-                    MepGeometryCodec.parseDecimal(z2) ?: Double.NaN
-                )
-                val points = when {
-                    type.isRun -> listOf(p1, p2)
-                    type == MepElementType.ELBOW || type == MepElementType.TEE -> MepGeometryCodec.defaultFittingPoints(type, p1)
-                    else -> listOf(p1)
-                }
                 val nominal = MepGeometryCodec.parseDecimal(diameter)
                 val problem = when {
                     type !in MepElementType.allowedFor(system) -> "نوع القطعة لا يتبع الخدمة المختارة."
-                    MepGeometryCodec.validate(type, points) != null -> MepGeometryCodec.validate(type, points)
-                    points.any { !bounds.contains(it) } -> "توجد نقطة خارج أبعاد الفراغ المقاس."
                     nominal == null || !nominal.isFinite() || nominal <= 0.0 || nominal > 1000.0 -> "أدخل قطرًا اسميًا موجبًا لا يتجاوز 1000 مم."
                     material.isBlank() -> "أدخل المادة أو نوع الموصل."
                     else -> null
                 }
-                if (problem != null) error = problem else onSave(system, type, points, nominal!!, material.trim(), label.trim())
-            }) { Text("حفظ") }
+                if (problem != null) error = problem else onSave(system, type, nominal!!, material.trim(), label.trim())
+            }) { Text("الانتقال إلى الرسم 3D") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("إلغاء") } }
     )
@@ -434,20 +562,6 @@ private fun <T : Any> SimpleMenu(value: String, options: List<Pair<T, String>>, 
                 DropdownMenuItem(text = { Text(label) }, onClick = { onSelect(option); expanded = false })
             }
         }
-    }
-}
-
-@Composable
-private fun CoordinateFields(
-    x: String, y: String, z: String,
-    onX: (String) -> Unit, onY: (String) -> Unit, onZ: (String) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            OutlinedTextField(x, onX, Modifier.weight(1f), label = { Text("X") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
-            OutlinedTextField(y, onY, Modifier.weight(1f), label = { Text("Y") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
-        }
-        OutlinedTextField(z, onZ, Modifier.fillMaxWidth(), label = { Text("Z") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
     }
 }
 
