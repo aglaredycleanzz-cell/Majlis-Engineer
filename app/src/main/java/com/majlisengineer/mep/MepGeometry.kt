@@ -3,6 +3,7 @@ package com.majlisengineer.mep
 import kotlin.math.sqrt
 import kotlin.math.asin
 import kotlin.math.atan2
+import kotlin.math.round
 
 /** Local project coordinates in metres: X=room length, Y=height above floor, Z=room width. */
 data class MepPoint(val x: Double, val y: Double, val z: Double)
@@ -82,6 +83,12 @@ object MepGeometryCodec {
             }
         }
         return normalized.toDoubleOrNull()
+    }
+
+    fun snapToRoom(point: MepPoint, bounds: MepRoomBounds, gridM: Double = 0.05): MepPoint? {
+        if (!bounds.isValid || !gridM.isFinite() || gridM <= 0.0 || listOf(point.x, point.y, point.z).any { !it.isFinite() }) return null
+        fun snap(value: Double, maximum: Double) = (round(value / gridM) * gridM).coerceIn(0.0, maximum)
+        return MepPoint(snap(point.x, bounds.lengthM), snap(point.y, bounds.heightM), snap(point.z, bounds.widthM))
     }
 
     fun encode(points: List<MepPoint>): String? {

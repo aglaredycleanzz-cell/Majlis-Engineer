@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 import com.majlisengineer.data.*
-import com.majlisengineer.cad.ProjectCadScreen
 import com.majlisengineer.mep.ProjectMepScreen
 import com.majlisengineer.costs.CostCalculator
 import com.majlisengineer.costs.ProjectCostAdjustments
@@ -150,7 +149,7 @@ private fun DashboardScreen(
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("مشروع ← معاينة وقياسات ← كميات وتكلفة ← مهام التنفيذ ← ملاحظات المخططات ← تقرير PDF", fontWeight = FontWeight.Medium)
-                Text("يتضمن ملف المشروع محرر 2D واستيراد/تصدير DXF لعناصر محدودة مع تحذيرات وحفظ الأصل؛ DWG والأبعاد الهندسية المتقدمة غير متاحة.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("الأولوية الآن لمساحة 3D تفاعلية داخل المشروع لرسم السباكة والكهرباء مباشرة على نموذج الفراغ المحفوظ.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -217,10 +216,9 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
     val tasks by dao.observeTasks(projectId).collectAsState(initial = emptyList())
     val drawingNotes by dao.observeDrawingNotes(projectId).collectAsState(initial = emptyList())
     val costSettings by dao.observeProjectCostSettings(projectId).collectAsState(initial = null)
-    val savedInteriorDesign by dao.observeInteriorDesign(projectId).collectAsState(initial = null)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember(projectId) { mutableIntStateOf(1) }
     var showSurvey by remember { mutableStateOf(false) }
     var showBoq by remember { mutableStateOf(false) }
     var editingSurvey by remember { mutableStateOf<SiteSurveyEntity?>(null) }
@@ -283,29 +281,13 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
             }
         }
         ScrollableTabRow(selectedTabIndex = selectedTab, edgePadding = 8.dp) {
-            listOf("الملخص", "المعاينة", "الكميات", "التنفيذ", "مواد المشروع", "الملاحظات", "الرسم الهندسي", "التصميم الداخلي", "أنظمة MEP 3D").forEachIndexed { index, label ->
+            listOf("الملخص", "مساحة الرسم 3D", "المعاينة", "الكميات", "التنفيذ", "مواد المشروع", "الملاحظات").forEachIndexed { index, label ->
                 Tab(selected = selectedTab == index, onClick = { selectedTab = index }, text = { Text(label) })
             }
         }
-        if (selectedTab == 6) {
-            ProjectCadScreen(dao, projectId, Modifier.weight(1f).fillMaxWidth())
-        } else if (selectedTab == 7) {
-            com.majlisengineer.design.InteriorDesignScreen(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                savedDesign = savedInteriorDesign,
-                onSaveDesign = { room ->
-                    scope.launch {
-                        dao.saveInteriorDesign(InteriorDesignEntity(
-                            projectId, room.lengthM, room.widthM, room.heightM, room.doorWidthM, room.windowCount,
-                            room.style.name, room.seating.name, room.palette.name
-                        ))
-                    }
-                    Toast.makeText(context, "حُفظ التصميم وربط بالمشروع — مساحة الأرضية ${String.format(Locale.US, "%.2f", room.floorAreaM2)} م²", Toast.LENGTH_SHORT).show()
-                }
-            )
-        } else if (selectedTab == 8) {
+        if (selectedTab == 1) {
             ProjectMepScreen(dao, projectId, surveys, Modifier.weight(1f).fillMaxWidth())
-        } else if (selectedTab == 4) {
+        } else if (selectedTab == 5) {
             ProjectMaterialsScreen(dao, projectId, Modifier.weight(1f).fillMaxWidth())
         } else {
         Column(
@@ -385,7 +367,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                         modifier = Modifier.fillMaxWidth()
                     ) { Text("إنشاء تقرير المشروع PDF") }
                 }
-                1 -> {
+                2 -> {
                     SectionHeader("المعاينة الميدانية والقياسات", "احفظ أبعاد كل فراغ، وتحسب المساحات تلقائيًا.")
                     Button(onClick = { editingSurvey = null; showSurvey = true }, modifier = Modifier.fillMaxWidth()) { Text("＋ إضافة قياس") }
                     if (surveys.isEmpty()) EmptyCard("لا توجد قياسات", "أضف اسم الفراغ والطول والعرض والارتفاع.")
@@ -400,7 +382,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                         }
                     }
                 }
-                2 -> {
+                3 -> {
                     SectionHeader("جدول الكميات والتكلفة", "السعر والتكلفة والخصومات والربح التقديري بالريال العماني.")
                     MetricCard("سعر البيع المتوقع", formatOmr(total), Modifier.fillMaxWidth())
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -454,7 +436,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                     }
                     Text("ملاحظة: الأسعار المدخلة تقديرية ومسؤولية المستخدم، ولا يتم جلب أسعار السوق تلقائيًا.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                3 -> {
+                4 -> {
                     SectionHeader("متابعة التنفيذ", "أنشئ مهام العمل وحدّث حالتها أثناء التنفيذ.")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         MetricCard("مكتمل", completedTasks.toString(), Modifier.weight(1f))
@@ -489,7 +471,7 @@ private fun ProjectDetailScreen(dao: MaterialsDao, projectId: String, onBack: ()
                     }
                     Card(Modifier.fillMaxWidth()) {
                         Text(
-                            "تنبيه فني: هذا السجل يحفظ الملاحظات فقط. استيراد DXF محدود متاح في تبويب الرسم الهندسي؛ لا يدعم التطبيق DWG أو التحرير الكامل ولا ينتج مخططًا تنفيذيًا معتمدًا.",
+                            "تنبيه فني: هذا السجل يحفظ الملاحظات فقط. واجهات 2D مخفية حاليًا وفق أولوية العمل؛ مساحة الرسم النشطة هنا هي نموذج 3D تفاعلي وليست مخططًا تنفيذيًا معتمدًا.",
                             Modifier.padding(14.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

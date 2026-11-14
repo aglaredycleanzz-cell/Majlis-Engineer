@@ -45,6 +45,17 @@ class MepGeometryTest {
     }
 
     @Test
+    fun touchPointsSnapToFiveCentimetresAndStayInsideRoomBounds() {
+        val bounds = MepRoomBounds(lengthM = 4.0, widthM = 3.0, heightM = 2.8)
+        val snapped = MepGeometryCodec.snapToRoom(MepPoint(1.123, 0.543, 2.161), bounds)!!
+        assertEquals(1.10, snapped.x, 1e-9)
+        assertEquals(0.55, snapped.y, 1e-9)
+        assertEquals(2.15, snapped.z, 1e-9)
+        assertEquals(4.0, MepGeometryCodec.snapToRoom(MepPoint(8.0, 3.0, -1.0), bounds)!!.x, 1e-9)
+        assertNull(MepGeometryCodec.snapToRoom(MepPoint(Double.NaN, 0.0, 0.0), bounds))
+    }
+
+    @Test
     fun teeLengthCountsItsThreeBranchesAndRequiresFourPoints() {
         val points = listOf(
             MepPoint(1.0, 1.0, 1.0), MepPoint(0.8, 1.0, 1.0),
